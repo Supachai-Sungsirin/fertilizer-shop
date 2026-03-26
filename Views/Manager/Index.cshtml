@@ -1,0 +1,121 @@
+@model FertilizerShop.ViewModels.ManagerDashboardViewModel
+@{
+    ViewData["Title"] = "Manager Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-speedometer2"></i> ภาพรวมระบบ (Manager)</h2>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 bg-success text-white">
+            <div class="card-body p-4 d-flex align-items-center">
+                <i class="bi bi-cash-coin display-4 me-4"></i>
+                <div>
+                    <h5 class="card-title mb-1">ยอดขายวันนี้</h5>
+                    <h2 class="mb-0 fw-bold">฿ @Model.TodaySales.ToString("N2")</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 bg-info text-white">
+            <div class="card-body p-4 d-flex align-items-center">
+                <i class="bi bi-receipt display-4 me-4"></i>
+                <div>
+                    <h5 class="card-title mb-1">จำนวนบิลวันนี้</h5>
+                    <h2 class="mb-0 fw-bold">@Model.TodayOrdersCount บิล</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 border-top border-danger border-4 h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-danger fw-bold"><i class="bi bi-box-arrow-down"></i> สินค้าสต็อกเหลือน้อย (< 10)</h5>
+            </div>
+            <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>สินค้า</th>
+                            <th class="text-end">คงเหลือ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.LowStockProducts.Any())
+                        {
+                            foreach (var item in Model.LowStockProducts)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@item.Name</div>
+                                        <small class="text-muted">@item.Sku</small>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-danger fs-6 rounded-pill">@item.StockQuantity</span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="2" class="text-center py-4 text-success"><i class="bi bi-check-circle"></i> สต็อกปกติทั้งหมด</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 border-top border-warning border-4 h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-warning text-dark fw-bold"><i class="bi bi-calendar-x"></i> ใกล้หมดอายุ (ภายใน 30 วัน)</h5>
+            </div>
+            <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>สินค้า</th>
+                            <th class="text-end">วันหมดอายุ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.ExpiringProducts.Any())
+                        {
+                            foreach (var item in Model.ExpiringProducts)
+                            {
+                                // คำนวณว่าเหลืออีกกี่วันจะหมดอายุ
+                                var daysLeft = (item.ExpiryDate.Value.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days;
+                                // (ถ้า Model ใช้ DateTime ให้ใช้: var daysLeft = (item.ExpiryDate.Value - DateTime.Today).Days;)
+
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@item.Name</div>
+                                        <small class="text-muted">@item.Sku</small>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="text-danger fw-bold">@item.ExpiryDate.Value.ToString("dd/MM/yyyy")</div>
+                                        <small class="text-muted">เหลือ @daysLeft วัน</small>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="2" class="text-center py-4 text-success"><i class="bi bi-check-circle"></i> ไม่มีสินค้าใกล้หมดอายุ</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>

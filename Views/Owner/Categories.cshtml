@@ -1,0 +1,51 @@
+@model IEnumerable<FertilizerShop.Models.Category>
+@{
+    ViewData["Title"] = "จัดการหมวดหมู่สินค้า";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-tags"></i> หมวดหมู่สินค้า</h2>
+    <a href="@Url.Action("AddCategory", "Owner")" class="btn btn-success"><i class="bi bi-plus-circle"></i> เพิ่มหมวดหมู่ใหม่</a>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="15%">รหัสหมวดหมู่</th>
+                    <th>ชื่อหมวดหมู่</th>
+                    <th width="20%" class="text-center">จัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cat in Model)
+                {
+                    <tr>
+                        <td class="fw-bold text-muted">CAT-@cat.CategoryId.ToString("D3")</td>
+                        <td class="fs-5 text-success fw-bold">@cat.CategoryName</td>
+                        <td class="text-center">
+                            <a href="@Url.Action("EditCategory", "Owner", new { id = cat.CategoryId })" class="btn btn-sm btn-outline-warning" title="แก้ไข">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a href="@Url.Action("DeleteCategory", "Owner", new { id = cat.CategoryId })" 
+                               class="btn btn-sm btn-outline-danger" 
+                               onclick="return confirm('ยืนยันการลบหมวดหมู่ @cat.CategoryName ?');" title="ลบข้อมูล">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

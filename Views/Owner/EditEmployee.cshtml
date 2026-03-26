@@ -1,0 +1,61 @@
+@model FertilizerShop.ViewModels.EditEmployeeViewModel
+
+@{
+    ViewData["Title"] = "แก้ไขข้อมูลพนักงาน";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-pencil-square"></i> แก้ไขข้อมูลพนักงาน</h2>
+    <a href="@Url.Action("Employees", "Owner")" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> กลับหน้ารายชื่อ</a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form asp-action="EditEmployee" method="post">
+            <input type="hidden" asp-for="UserId" />
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">รหัสพนักงาน</label>
+                    <input type="text" asp-for="EmployeeId" class="form-control" />
+                    <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">รหัสผ่านใหม่ <span class="text-muted fw-normal">(ปล่อยว่างได้ถ้าไม่ต้องการเปลี่ยน)</span></label>
+                    <input type="password" asp-for="PasswordHash" class="form-control" />
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">ชื่อ</label>
+                    <input type="text" asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">นามสกุล</label>
+                    <input type="text" asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">ตำแหน่ง (Role)</label>
+                    <select asp-for="RoleId" asp-items="ViewBag.RoleList" class="form-select"></select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold d-block">สถานะการเข้าใช้งาน</label>
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" asp-for="IsActive" style="transform: scale(1.5); margin-left: -1.5rem;">
+                        <label class="form-check-label ms-3">เปิดใช้งานบัญชีนี้</label>
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+            <button type="submit" class="btn btn-warning px-4"><i class="bi bi-save"></i> อัปเดตข้อมูล</button>
+        </form>
+    </div>
+</div>

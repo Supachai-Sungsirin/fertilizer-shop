@@ -1,0 +1,48 @@
+@model FertilizerShop.ViewModels.CategoryViewModel
+@{
+    ViewData["Title"] = "เพิ่มหมวดหมู่สินค้า";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-success text-white rounded-top-4">
+                    <h5 class="mb-0">
+                        <i class="bi bi-plus-circle"></i> เพิ่มหมวดหมู่สินค้า
+                    </h5>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <form asp-action="AddCategory" method="post">
+
+                        <div class="mb-3">
+                            <label asp-for="CategoryName" class="form-label fw-semibold"></label>
+                            <input asp-for="CategoryName" class="form-control form-control-lg"
+                                   placeholder="เช่น ปุ๋ยเคมี, ปุ๋ยอินทรีย์" />
+                            <span asp-validation-for="CategoryName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="@Url.Action("Categories", "Owner")" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> กลับ
+                            </a>
+
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="bi bi-save"></i> บันทึก
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>

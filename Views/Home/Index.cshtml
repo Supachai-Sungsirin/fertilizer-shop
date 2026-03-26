@@ -1,13 +1,134 @@
 ﻿@{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "หน้าแรก - ระบบจัดการร้านปุ๋ย";
 }
 
-<div class="text-center mt-5">
-    <h1>@ViewBag.WelcomeMessage</h1>
-    <p class="lead">ระบบจัดการร้านขายปุ๋ยครบวงจร สำหรับเจ้าของร้าน ผู้จัดการ และแคชเชียร์</p>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-    <div class="mt-4">
-        <a class="btn btn-success btn-lg me-2" href="@Url.Action("Login","Account")">Login</a>
-        <a class="btn btn-outline-success btn-lg" href="@Url.Action("Register","Account")">Register</a>
+<style>
+    body {
+        font-family: 'Sarabun', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .hero-section {
+        background: linear-gradient(rgba(29, 151, 108, 0.9), rgba(22, 122, 87, 0.9)), 
+                    url('https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 100px 0;
+        border-radius: 0 0 50px 50px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .btn-custom-lg {
+        padding: 12px 35px;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .btn-login {
+        background-color: #ffffff;
+        color: #1d976c;
+        border: none;
+    }
+
+    .btn-login:hover {
+        background-color: #e9ecef;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        color: #167a57;
+    }
+
+    .btn-reg {
+        border: 2px solid #ffffff;
+        color: #ffffff;
+    }
+
+    .btn-reg:hover {
+        background-color: rgba(255,255,255,0.1);
+        transform: translateY(-3px);
+        color: #ffffff;
+    }
+
+    .feature-card {
+        border: none;
+        border-radius: 20px;
+        padding: 30px;
+        background: #fff;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease;
+        height: 100%;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+    }
+
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        background: rgba(29, 151, 108, 0.1);
+        color: #1d976c;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="hero-section text-center">
+    <div class="container">
+        <div class="mb-4">
+            <i class="fa-solid fa-seedling fa-4x animate__animated animate__bounceIn"></i>
+        </div>
+        <h1 class="display-4 fw-bold mb-3">@ViewBag.WelcomeMessage</h1>
+
+        <div class="d-flex justify-content-center gap-3">
+            <a class="btn btn-custom-lg btn-login shadow" href="@Url.Action("Login","Account")">
+                <i class="fa-solid fa-right-to-bracket me-2"></i> เข้าสู่ระบบ
+            </a>
+            <a class="btn btn-custom-lg btn-reg" href="@Url.Action("Register","Account")">
+                <i class="fa-solid fa-user-plus me-2"></i> ลงทะเบียน
+            </a>
+        </div>
     </div>
 </div>
+
+@* <div class="container my-5 pt-4">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="feature-card text-center">
+                <div class="icon-box mx-auto">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                </div>
+                <h5 class="fw-bold">ระบบขายหน้าร้าน (POS)</h5>
+                <p class="text-muted small">บันทึกรายการขาย ออกใบเสร็จ และคำนวณส่วนลดได้อย่างรวดเร็วและแม่นยำ</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card text-center">
+                <div class="icon-box mx-auto">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <h5 class="fw-bold">จัดการสต็อกสินค้า</h5>
+                <p class="text-muted small">ตรวจสอบจำนวนปุ๋ยคงเหลือ แจ้งเตือนสินค้าใกล้หมด และจัดการประวัติการนำเข้า</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card text-center">
+                <div class="icon-box mx-auto">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <h5 class="fw-bold">รายงานและสถิติ</h5>
+                <p class="text-muted small">ดูยอดขายรายวัน รายเดือน และวิเคราะห์สินค้าขายดีเพื่อวางแผนการสั่งซื้อ</p>
+            </div>
+        </div>
+    </div>
+</div> *@

@@ -1,5 +1,6 @@
 using FertilizerShop.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,15 @@ builder.Services.AddDbContext<FertilizershopdbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection"),
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
     ));
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+.AddCookie(options =>
+{
+    // กำหนดว่าถ้าใครยังไม่ล็อกอิน ให้เด้งไปที่หน้า Login อัตโนมัติ
+    options.LoginPath = "/Account/Login";
+    // กำหนดว่าถ้าล็อกอินแล้วเข้าหน้าเว็บที่สิทธิ์ไม่ถึง (เช่น แคชเชียร์พยายามเข้าหน้าเจ้าของร้าน) ให้ไปหน้าไหน
+    options.AccessDeniedPath = "/Home/Index";
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -1,0 +1,94 @@
+@model IEnumerable<FertilizerShop.Models.User>
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "จัดการพนักงาน";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-people"></i> จัดการพนักงาน</h2>
+    <a href="@Url.Action("AddEmployee", "Owner")" class="btn btn-success"><i class="bi bi-person-plus"></i>
+        เพิ่มพนักงานใหม่</a>
+    </div>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>รหัสพนักงาน</th>
+                        <th>ชื่อ-นามสกุล</th>
+                        <th>ตำแหน่ง (Role)</th>
+                        <th>สถานะ</th>
+                        <th class="text-center">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-success">@user.EmployeeId</td>
+                            <td>@user.FirstName @user.LastName</td>
+                            <td>
+                                @if (user.Role.RoleName == "Owner")
+                                {
+                                    <span class="badge bg-danger">เจ้าของร้าน</span>
+                                }
+                                else if (user.Role.RoleName == "Manager")
+                                {
+
+                                    <span class="badge bg-primary">ผู้จัดการ</span>
+                                }
+                                else
+                                {
+
+                                    <span class="badge bg-secondary">แคชเชียร์</span>
+                                }
+                            </td>
+                            <td>
+                                @if (user.IsActive == true)
+                                {
+                                    <span class="badge bg-success rounded-pill">เปิดใช้งาน</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger rounded-pill">ระงับการใช้งาน</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a href="@Url.Action("EditEmployee", "Owner", new { id = user.UserId })"
+                                       class="btn btn-sm btn-outline-warning" title="แก้ไข">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+    
+                                @if (user.UserId == currentUserId)
+                                {
+                                    <button class="btn btn-sm btn-secondary" disabled title="บัญชีของคุณ (ไม่สามารถระงับได้)">
+                                        <i class="bi bi-person-check-fill"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("ToggleStatus", "Owner", new { id = user.UserId })"
+                                           class="btn btn-sm @(user.IsActive == true ? "btn-outline-danger" : "btn-outline-success")"
+                                           onclick="return confirm('ยืนยันการเปลี่ยนสถานะการใช้งานของพนักงานท่านนี้?');"
+                                           title="เปลี่ยนสถานะ">
+                                        <i class="bi @(user.IsActive == true ? "bi-person-x-fill" : "bi-person-check-fill")"></i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>

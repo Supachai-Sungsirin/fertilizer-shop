@@ -1,14 +1,20 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using FertilizerShop.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FertilizerShop.Controllers;
 
 public class HomeController : Controller
-{
+{   
+    private readonly FertilizershopdbContext _db;
+    public HomeController(FertilizershopdbContext db)
+    {
+        _db = db;
+    }
     public IActionResult Index()
     {
-        ViewBag.WelcomeMessage = "ยินดีต้อนรับสู่ FertilizerShop ระบบจัดการร้านขายปุ๋ย";
+        ViewBag.WelcomeMessage = "ยินดีต้อนรับสู่ ชาติชายฟาร์ม";
         return View();
     }
 

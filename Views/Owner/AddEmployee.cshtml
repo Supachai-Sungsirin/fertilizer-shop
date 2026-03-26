@@ -1,0 +1,54 @@
+@model FertilizerShop.ViewModels.EmployeeViewModel
+
+@{
+    ViewData["Title"] = "เพิ่มพนักงานใหม่";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-person-plus"></i> เพิ่มพนักงานใหม่</h2>
+    <a href="@Url.Action("Employees", "Owner")" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> กลับหน้ารายชื่อ</a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form asp-action="AddEmployee" method="post">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">รหัสพนักงาน (ใช้สำหรับ Login)</label>
+                    <input type="text" asp-for="EmployeeId" class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">รหัสผ่าน</label>
+                    <input type="password" asp-for="PasswordHash" class="form-control" required />
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">ชื่อ</label>
+                    <input type="text" asp-for="FirstName" class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">นามสกุล</label>
+                    <input type="text" asp-for="LastName" class="form-control" required />
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">ตำแหน่ง (Role)</label>
+                    <select asp-for="RoleId" asp-items="ViewBag.RoleList" class="form-select" required>
+                        <option value="">-- เลือกตำแหน่ง --</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr />
+            <button type="submit" class="btn btn-success px-4"><i class="bi bi-save"></i> บันทึกข้อมูล</button>
+            <button type="reset" class="btn btn-outline-danger px-4 ms-2">ล้างค่า</button>
+        </form>
+    </div>
+</div>
