@@ -20,6 +20,7 @@
         padding: 100px 0;
         border-radius: 0 0 50px 50px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-top: -50px;
     }
 
     .btn-custom-lg {
@@ -89,6 +90,10 @@
             <i class="fa-solid fa-seedling fa-4x animate__animated animate__bounceIn"></i>
         </div>
         <h1 class="display-4 fw-bold mb-3">@ViewBag.WelcomeMessage</h1>
+        <p class="lead mb-5 opacity-90 mx-auto" style="max-width: 700px;">
+            ยกระดับการบริหารจัดการร้านขายปุ๋ยของคุณด้วยเทคโนโลยีที่ทันสมัย ครบวงจร 
+            รองรับทั้งการขายหน้าร้าน สต็อกสินค้า และการจัดการบุคลากร
+        </p>
 
         <div class="d-flex justify-content-center gap-3">
             <a class="btn btn-custom-lg btn-login shadow" href="@Url.Action("Login","Account")">
@@ -101,7 +106,7 @@
     </div>
 </div>
 
-@* <div class="container my-5 pt-4">
+<div class="container my-5 pt-4">
     <div class="row g-4">
         <div class="col-md-4">
             <div class="feature-card text-center">
@@ -131,4 +136,4 @@
             </div>
         </div>
     </div>
-</div> *@
+</div>

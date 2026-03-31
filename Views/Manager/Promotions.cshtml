@@ -1,0 +1,171 @@
+@model IEnumerable<FertilizerShop.Models.Promotion>
+@{
+    ViewData["Title"] = "จัดการโปรโมชั่น";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .promo-table thead th {
+        background-color: #f8fafc;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        font-weight: 700;
+        color: #475569;
+        padding: 15px;
+        border: none;
+    }
+
+    .promo-name {
+        color: #1e293b;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .condition-tag {
+        background-color: #f1f5f9;
+        color: #475569;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .reward-text {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #ef4444; /* สีแดงสะดุดตาสำหรับส่วนลด */
+    }
+
+    .status-pill {
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .btn-action-promo {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        transition: all 0.2s;
+    }
+
+    .btn-action-promo:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+</style>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-megaphone-fill text-success me-2"></i> จัดการโปรโมชั่น</h2>
+        <p class="text-muted small mb-0">สร้างและตั้งค่าแคมเปญส่วนลดเพื่อเพิ่มยอดขายให้กับร้าน</p>
+    </div>
+    <a href="@Url.Action("AddPromotion", "Manager")" class="btn btn-success shadow-sm px-4 py-2" style="border-radius: 10px;">
+        <i class="bi bi-plus-circle-fill me-2"></i> สร้างโปรโมชั่นใหม่
+    </a>
+</div>
+
+<div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 promo-table">
+                <thead>
+                    <tr>
+                        <th class="ps-4">แคมเปญ / ชื่อโปรโมชั่น</th>
+                        <th>เงื่อนไขการรับสิทธิ์</th>
+                        <th>ส่วนลดที่จะได้รับ</th>
+                        <th class="text-center">สถานะใช้งาน</th>
+                        <th class="text-center pe-4">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var p in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="promo-name">@p.Name</div>
+                                    <small class="text-muted">ID: #PROMO-@p.PromotionId</small>
+                                </td>
+                                <td>
+                                    <div class="condition-tag">
+                                        <i class="bi bi-info-circle"></i>
+                                        @if(p.ConditionType == "MinAmount") { 
+                                            <span>ยอดซื้อครบ <strong>@p.ConditionValue.ToString("N0")</strong> บาท</span> 
+                                        }
+                                        else if(p.ConditionType == "MinQuantity") { 
+                                            <span>ซื้อครบ <strong>@p.ConditionValue.ToString("N0")</strong> ชิ้น</span> 
+                                        }
+                                        else { 
+                                            <span>@p.ConditionType: @p.ConditionValue</span> 
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="reward-text">
+                                        @if(p.RewardType == "DiscountBaht") { 
+                                            <span>-@p.RewardValue.ToString("N0") <small>฿</small></span> 
+                                        }
+                                        else if(p.RewardType == "DiscountPercent") { 
+                                            <span>-@p.RewardValue.ToString("N0") <small>%</small></span> 
+                                        }
+                                        else { 
+                                            <span>@p.RewardType: @p.RewardValue</span> 
+                                        }
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    @if(p.IsActive == true) {
+                                        <span class="badge bg-success-subtle text-success status-pill">
+                                            <i class="bi bi-check-circle-fill me-1"></i> กำลังรันแคมเปญ
+                                        </span>
+                                    } else {
+                                        <span class="badge bg-secondary-subtle text-secondary status-pill">
+                                            <i class="bi bi-pause-circle-fill me-1"></i> ปิดชั่วคราว
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center pe-4">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="@Url.Action("TogglePromotion", "Manager", new { id = p.PromotionId })" 
+                                           class="btn btn-action-promo @(p.IsActive == true ? "btn-outline-warning" : "btn-outline-success")" 
+                                           title="@(p.IsActive == true ? "พักแคมเปญ" : "เปิดแคมเปญ")">
+                                            <i class="bi @(p.IsActive == true ? "bi-pause-fill" : "bi-play-fill") fs-5"></i>
+                                        </a>
+
+                                        <a href="@Url.Action("DeletePromotion", "Manager", new { id = p.PromotionId })" 
+                                           class="btn btn-action-promo btn-outline-danger" 
+                                           onclick="return confirm('ยืนยันการลบโปรโมชั่นนี้? ข้อมูลการขายในอดีตที่ใช้โปรโมชั่นนี้จะไม่หายไป');" 
+                                           title="ลบถาวร">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="opacity-50">
+                                    <i class="bi bi-megaphone display-4"></i>
+                                    <p class="mt-2">ยังไม่มีข้อมูลโปรโมชั่นในขณะนี้</p>
+                                    <a href="@Url.Action("AddPromotion", "Manager")" class="btn btn-sm btn-success">สร้างรายการแรก</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

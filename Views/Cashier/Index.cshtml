@@ -1,6 +1,6 @@
 @model IEnumerable<FertilizerShop.Models.Product>
 @{
-    ViewData["Title"] = "ระบบขายหน้าร้าน (POS)";
+    ViewData["Title"] = "ระบบขายหน้าร้าน (POS) - ชาติชายฟาร์ม";
     Layout = null; 
 }
 
@@ -12,53 +12,93 @@
     <title>@ViewData["Title"]</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { background-color: #f0f2f5; overflow: hidden; } /* ซ่อน Scrollbar ของหน้าหลัก */
-        .pos-header { background-color: #2f3e46; color: white; padding: 10px 20px; }
-        .product-area { height: calc(100vh - 60px); overflow-y: auto; padding: 20px; }
-        .cart-area { height: calc(100vh - 60px); background: white; border-left: 2px solid #dee2e6; display: flex; flex-direction: column; }
+        body { 
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f0f2f5; 
+            overflow: hidden; 
+            height: 100vh;
+        }
+
+        /* Header */
+        .pos-header { 
+            background: linear-gradient(90deg, #1a2a23 0%, #2f3e46 100%); 
+            color: white; 
+            padding: 12px 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Layout Areas */
+        .product-area { height: calc(100vh - 65px); overflow-y: auto; padding: 20px; background-color: #f8fafc; }
+        .cart-area { height: calc(100vh - 65px); background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        
+        /* Category & Cards */
+        .category-pill { border-radius: 50px; padding: 8px 20px; border: none; background: white; color: #64748b; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-right: 8px; transition: 0.2s; }
+        .category-pill.active { background: #1d976c; color: white; box-shadow: 0 4px 10px rgba(29, 151, 108, 0.3); }
+
+        .product-card { border: none; border-radius: 15px; cursor: pointer; transition: 0.2s; background: white; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        .img-container { height: 120px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #cbd5e1; position: relative; }
+        .stock-badge { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); padding: 2px 8px; border-radius: 50px; font-size: 0.7rem; font-weight: 700; }
+
+        /* Cart Styling */
         .cart-items { flex-grow: 1; overflow-y: auto; padding: 15px; }
-        .cart-summary { background: #e9ecef; padding: 20px; border-top: 2px solid #dee2e6; }
-        .product-card { cursor: pointer; transition: transform 0.1s; }
-        .product-card:hover { transform: scale(1.02); border-color: #198754; }
-        .product-image-placeholder { height: 120px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #adb5bd; }
+        .cart-summary { background: #fff; padding: 20px; border-top: 1px solid #f1f5f9; }
+        
+        /* Toast Position */
+        .toast-container { z-index: 2000; }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body>
 
+    <div class="toast-container position-fixed bottom-0 start-0 p-3">
+        <div id="posToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <div class="pos-header d-flex justify-content-between align-items-center">
-        <h4 class="m-0"><i class="bi bi-shop"></i> ระบบแคชเชียร์</h4>
+        <div class="d-flex align-items-center">
+            <i class="bi bi-leaf-fill fs-3 me-2 text-success"></i>
+            <h4 class="m-0 fw-bold">ชาติชายฟาร์ม POS</h4>
+        </div>
         <div>
-            <span class="me-3"><i class="bi bi-person-circle"></i> พนักงาน: @User.Identity.Name</span>
-            <a href="@Url.Action("Logout", "Account")" class="btn btn-sm btn-danger"><i class="bi bi-box-arrow-right"></i> ออกจากระบบ</a>
+            <span class="me-3 small"><i class="bi bi-person-circle"></i> แคชเชียร์: @User.Identity.Name</span>
+            <a href="@Url.Action("Logout", "Account")" class="btn btn-sm btn-outline-danger rounded-pill px-3">ออกจากระบบ</a>
         </div>
     </div>
 
     <div class="container-fluid p-0">
         <div class="row g-0">
-            <div class="col-md-8 product-area">
-                
-                <div class="mb-3">
-                    <button class="btn btn-outline-success active me-1 mb-1">ทั้งหมด</button>
+            <div class="col-lg-8 col-md-7 product-area">
+                <div class="d-flex overflow-auto pb-3 mb-2">
+                    <button class="category-pill active">ทั้งหมด</button>
                     @foreach (var cat in ViewBag.Categories as IEnumerable<FertilizerShop.Models.Category>)
                     {
-                        <button class="btn btn-outline-secondary me-1 mb-1">@cat.CategoryName</button>
+                        <button class="category-pill text-nowrap">@cat.CategoryName</button>
                     }
                 </div>
 
                 <div class="row g-3">
                     @foreach (var p in Model)
                     {
-                        <div class="col-md-3 col-sm-4">
-                            <div class="card product-card h-100 shadow-sm" 
-                                 onclick="addToCart(@p.ProductId, '@p.Name', @p.Price, @p.StockQuantity)">
-                                <div class="product-image-placeholder">
+                        <div class="col-xl-3 col-lg-4 col-sm-6">
+                            <div class="card product-card h-100 shadow-sm" onclick="addToCart(@p.ProductId, '@p.Name', @p.Price, @p.StockQuantity)">
+                                <div class="img-container text-success">
                                     <i class="bi bi-box-seam"></i>
+                                    <span class="stock-badge text-@(p.StockQuantity < 10 ? "danger" : "muted")">คงเหลือ: @p.StockQuantity</span>
                                 </div>
                                 <div class="card-body p-2 text-center">
-                                    <h6 class="card-title text-truncate mb-1" title="@p.Name">@p.Name</h6>
-                                    <small class="text-muted d-block mb-1">คงเหลือ: @p.StockQuantity</small>
-                                    <h5 class="text-success mb-0 fw-bold">฿@p.Price.ToString("N2")</h5>
+                                    <h6 class="text-truncate fw-bold mb-1">@p.Name</h6>
+                                    <h5 class="text-success fw-bold mb-0">฿@p.Price.ToString("N2")</h5>
                                 </div>
                             </div>
                         </div>
@@ -66,169 +106,222 @@
                 </div>
             </div>
 
-            <div class="col-md-4 cart-area">
-                <div class="p-3 bg-light border-bottom fw-bold text-center fs-5">
-                    <i class="bi bi-cart3"></i> รายการสั่งซื้อ
+            <div class="col-lg-4 col-md-5 cart-area">
+                <div class="p-3 border-bottom fw-bold d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-cart3 me-2"></i>รายการสั่งซื้อ</span>
+                    <span class="badge bg-success rounded-pill" id="item-count">0</span>
                 </div>
                 
                 <div class="cart-items" id="cart-items-container">
-                    <div class="text-center text-muted mt-5">
-                        <i class="bi bi-basket fs-1"></i><br />ยังไม่มีสินค้าในตะกร้า
+                    <div class="text-center mt-5 opacity-50">
+                        <i class="bi bi-basket2 fs-1"></i><br>ไม่มีสินค้าในตะกร้า
                     </div>
                 </div>
 
-                <div class="cart-summary">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="fs-5">ยอดรวมทั้งหมด</span>
-                        <span class="fs-4 fw-bold text-danger" id="total-price">฿ 0.00</span>
+                <div class="cart-summary shadow-lg">
+                    <div class="small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">ยอดรวม</span>
+                            <span id="sub-total">฿ 0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 text-success fw-bold">
+                            <span>ส่วนลดโปรโมชั่น</span>
+                            <span id="discount-amount">- ฿ 0.00</span>
+                        </div>
                     </div>
-                    <button class="btn btn-success w-100 py-3 fs-5 fw-bold shadow" onclick="checkout()" id="btn-checkout" disabled>
-                        ชำระเงิน <i class="bi bi-arrow-right-circle"></i>
-                    </button>
-                    <button class="btn btn-outline-danger w-100 mt-2" onclick="clearCart()">
-                        ยกเลิกบิล
-                    </button>
+                    
+                    <div class="d-flex justify-content-between mb-3 border-top pt-2">
+                        <span class="fs-5 fw-bold">ยอดสุทธิ</span>
+                        <span class="fs-3 fw-bold text-danger" id="net-total">฿ 0.00</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">ช่องทางชำระเงิน</label>
+                        <select id="payment-method" class="form-select border-0 bg-light">
+                            <option value="Cash">เงินสด (Cash)</option>
+                            <option value="Transfer">โอนเงิน (Transfer)</option>
+                            <option value="CreditCard">บัตรเครดิต (Credit Card)</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-8">
+                            <button class="btn btn-success w-100 py-3 fw-bold shadow-sm" onclick="checkout()" id="btn-checkout" disabled>
+                                ชำระเงิน <i class="bi bi-check2-circle ms-1"></i>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-danger h-100 w-100 fw-bold" onclick="clearCart()">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // สร้าง Array เก็บรายการสินค้าในตะกร้า
         let cart = [];
+        let promos = @Html.Raw(ViewBag.PromotionsJson ?? "[]");
+        let finalDiscount = 0;
 
-        // ฟังก์ชันเพิ่มสินค้าลงตะกร้า
-        function addToCart(id, name, price, maxStock) {
-            // เช็คว่ามีสินค้านี้ในตะกร้าหรือยัง
-            let existingItem = cart.find(item => item.id === id);
+        // ฟังก์ชันเรียกใช้งาน Toast แทน Alert
+        function showToast(msg, type = "success") {
+            const toastEl = document.getElementById('posToast');
+            const messageEl = document.getElementById('toastMessage');
+            toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning');
             
+            let bgColor = 'bg-success';
+            if (type === 'danger') bgColor = 'bg-danger';
+            if (type === 'warning') bgColor = 'bg-warning';
+            
+            toastEl.classList.add(bgColor);
+            messageEl.innerText = msg;
+            
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        function addToCart(id, name, price, maxStock) {
+            let existingItem = cart.find(item => item.id === id);
             if (existingItem) {
-                // ถ้ามีแล้วและจำนวนยังไม่เกินสต็อก ให้บวกเพิ่ม 1
                 if (existingItem.qty < maxStock) {
                     existingItem.qty++;
+                    showToast(`เพิ่ม ${name} แล้ว`);
                 } else {
-                    alert("สินค้าในสต็อกไม่เพียงพอ!");
+                    showToast("สินค้าในสต็อกไม่เพียงพอ!", "danger");
                 }
             } else {
-                // ถ้ายังไม่มี ให้เพิ่มเข้าไปใหม่
                 cart.push({ id: id, name: name, price: price, qty: 1, maxStock: maxStock });
+                showToast(`เพิ่ม ${name} ลงตะกร้า`);
             }
             renderCart();
         }
 
-        // ฟังก์ชันลบ/ลด จำนวนสินค้า
         function changeQty(id, amount) {
             let itemIndex = cart.findIndex(item => item.id === id);
             if (itemIndex > -1) {
                 cart[itemIndex].qty += amount;
-                
-                // ถ้าจำนวนเหลือ 0 หรือน้อยกว่า ให้ลบออกจากตะกร้า
                 if (cart[itemIndex].qty <= 0) {
                     cart.splice(itemIndex, 1);
                 } else if (cart[itemIndex].qty > cart[itemIndex].maxStock) {
                     cart[itemIndex].qty = cart[itemIndex].maxStock;
-                    alert("สินค้าในสต็อกไม่เพียงพอ!");
+                    showToast("สินค้าในสต็อกไม่เพียงพอ!", "warning");
                 }
                 renderCart();
             }
         }
 
-        // ฟังก์ชันล้างตะกร้า
         function clearCart() {
             if(cart.length > 0 && confirm("ต้องการยกเลิกบิลนี้ใช่หรือไม่?")) {
                 cart = [];
                 renderCart();
+                showToast("ล้างตะกร้าเรียบร้อย", "warning");
             }
         }
 
-        // ฟังก์ชันวาด UI ตะกร้าใหม่ทุกครั้งที่มีการเปลี่ยนแปลง
         function renderCart() {
             let container = document.getElementById("cart-items-container");
-            let totalElement = document.getElementById("total-price");
+            let subTotalEl = document.getElementById("sub-total");
+            let discountEl = document.getElementById("discount-amount");
+            let netTotalEl = document.getElementById("net-total");
             let btnCheckout = document.getElementById("btn-checkout");
+            let countBadge = document.getElementById("item-count");
             
             if (cart.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted mt-5"><i class="bi bi-basket fs-1"></i><br />ยังไม่มีสินค้าในตะกร้า</div>`;
-                totalElement.innerText = "฿ 0.00";
-                btnCheckout.disabled = true;
-                return;
+                container.innerHTML = `<div class="text-center mt-5 opacity-25"><i class="bi bi-cart-x fs-1"></i><br>ตะกร้าว่าง</div>`;
+                subTotalEl.innerText = "฿ 0.00"; discountEl.innerText = "- ฿ 0.00"; netTotalEl.innerText = "฿ 0.00";
+                btnCheckout.disabled = true; countBadge.innerText = "0"; return;
             }
 
             let html = "";
-            let total = 0;
+            let totalAmount = 0;
+            let totalQty = 0;
 
             cart.forEach(item => {
                 let itemTotal = item.price * item.qty;
-                total += itemTotal;
-                
+                totalAmount += itemTotal;
+                totalQty += item.qty;
                 html += `
-                <div class="card mb-2 border-0 shadow-sm">
+                <div class="card mb-2 border-0 bg-light">
                     <div class="card-body p-2 d-flex justify-content-between align-items-center">
                         <div style="width: 50%;">
-                            <div class="fw-bold text-truncate" style="font-size: 0.9rem;" title="${item.name}">${item.name}</div>
-                            <div class="text-muted small">฿${item.price.toFixed(2)}</div>
+                            <div class="fw-bold text-truncate small">${item.name}</div>
+                            <div class="text-muted" style="font-size:0.75rem">฿${item.price.toFixed(2)}</div>
                         </div>
                         <div class="d-flex align-items-center">
-                            <button class="btn btn-sm btn-outline-secondary px-2 py-0" onclick="changeQty(${item.id}, -1)">-</button>
-                            <span class="mx-2 fw-bold">${item.qty}</span>
-                            <button class="btn btn-sm btn-outline-secondary px-2 py-0" onclick="changeQty(${item.id}, 1)">+</button>
+                            <button class="btn btn-sm btn-white shadow-sm px-2 py-0" onclick="changeQty(${item.id}, -1)">-</button>
+                            <span class="mx-2 fw-bold small">${item.qty}</span>
+                            <button class="btn btn-sm btn-white shadow-sm px-2 py-0" onclick="changeQty(${item.id}, 1)">+</button>
                         </div>
-                        <div class="fw-bold text-end" style="width: 25%;">
-                            ฿${itemTotal.toFixed(2)}
-                        </div>
+                        <div class="fw-bold text-end small" style="width: 25%;">฿${itemTotal.toFixed(2)}</div>
                     </div>
                 </div>`;
             });
 
             container.innerHTML = html;
-            totalElement.innerText = "฿ " + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            countBadge.innerText = totalQty;
+
+            // คำนวณโปรโมชั่น
+            finalDiscount = 0;
+            promos.forEach(p => {
+                let isMatch = false;
+                let calcDisc = 0;
+                if(p.ConditionType === "MinAmount" && totalAmount >= p.ConditionValue) isMatch = true;
+                if(p.ConditionType === "MinQuantity" && totalQty >= p.ConditionValue) isMatch = true;
+                if(isMatch) {
+                    if(p.RewardType === "DiscountBaht") calcDisc = p.RewardValue;
+                    if(p.RewardType === "DiscountPercent") calcDisc = totalAmount * (p.RewardValue / 100);
+                }
+                if(calcDisc > finalDiscount) finalDiscount = calcDisc;
+            });
+
+            let netTotal = totalAmount - finalDiscount;
+            subTotalEl.innerText = "฿ " + totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2});
+            discountEl.innerText = "- ฿ " + finalDiscount.toLocaleString('en-US', {minimumFractionDigits: 2});
+            netTotalEl.innerText = "฿ " + netTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
             btnCheckout.disabled = false;
         }
 
-        // ฟังก์ชันสำหรับกดปุ่มชำระเงิน
         function checkout() {
             if (cart.length === 0) return;
+            let netText = document.getElementById("net-total").innerText;
+            let payMethod = document.getElementById("payment-method").value;
 
-            // ถามยืนยันก่อนคิดเงิน
-            let totalText = document.getElementById("total-price").innerText;
-            if (confirm("ยืนยันการชำระเงินยอดรวม " + totalText + " ใช่หรือไม่?")) {
-                
-                // เปลี่ยนสถานะปุ่มเป็นกำลังโหลด ป้องกันการกดซ้ำ
+            if (confirm("ยืนยันการชำระเงินยอดรวม " + netText + " ?")) {
                 let btn = document.getElementById("btn-checkout");
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังประมวลผล...';
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
                 btn.disabled = true;
 
-                // ส่งข้อมูลตะกร้า (cart) ไปที่ Controller ด้วย Fetch API
+                let payload = {
+                    CartItems: cart,
+                    PaymentMethod: payMethod,
+                    DiscountAmount: finalDiscount
+                };
+
                 fetch('/Cashier/Checkout', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json' // บอกเซิร์ฟเวอร์ว่าส่งไปเป็น JSON
-                    },
-                    body: JSON.stringify(cart) // แปลง Array เป็น JSON
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert("บันทึกการขายสำเร็จ! รหัสบิล: ORD-" + data.orderId);
-                        cart = []; // ล้างตะกร้า
-                        renderCart(); // วาด UI ตะกร้าใหม่
-                        location.reload(); // รีเฟรชหน้าเว็บ เพื่อให้สต็อกสินค้าฝั่งซ้ายอัปเดตตัวเลขล่าสุด
+                        showToast("ชำระเงินสำเร็จ กำลังพิมพ์ใบเสร็จ...");
+                        setTimeout(() => window.location.href = '/Cashier/Receipt/' + data.orderId, 1000);
                     } else {
-                        alert("เกิดข้อผิดพลาด: " + data.message);
-                        resetButton();
+                        showToast("ผิดพลาด: " + data.message, "danger");
+                        btn.innerHTML = 'ชำระเงิน <i class="bi bi-arrow-right-circle"></i>';
+                        btn.disabled = false;
                     }
                 })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
-                    resetButton();
-                });
-
-                // ฟังก์ชันย่อยสำหรับคืนค่าปุ่มเดิมเวลามี Error
-                function resetButton() {
-                    btn.innerHTML = 'ชำระเงิน <i class="bi bi-arrow-right-circle"></i>';
+                .catch(() => {
+                    showToast("การเชื่อมต่อล้มเหลว", "danger");
                     btn.disabled = false;
-                }
+                });
             }
         }
     </script>

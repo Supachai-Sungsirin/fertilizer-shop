@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FertilizerShop.Models;
-using System.Security.Claims;
 using FertilizerShop.ViewModels;
+using System.Security.Claims;
+using System.Text.Json; // เพิ่มบรรทัดนี้สำหรับส่ง Json
 
 namespace FertilizerShop.Controllers
 {
-    [Authorize(Roles = "Cashier,Owner,Manager")]
+    [Authorize(Roles = "Cashier,Owner,Manager")] 
     public class CashierController : Controller
     {
         private readonly FertilizershopdbContext _db;
@@ -16,56 +17,49 @@ namespace FertilizerShop.Controllers
         {
             _db = db;
         }
+
         public IActionResult Index()
         {
-            // ดึงเฉพาะสินค้าที่มีสต็อกมากกว่า 0 มาขาย (Include หมวดหมู่มาด้วย)
-            var products = _db.Products
-                              .Include(p => p.Category)
-                              .Where(p => p.StockQuantity > 0)
-                              .ToList();
-
-            // ดึงหมวดหมู่ทั้งหมดไปทำปุ่ม Filter กรองสินค้า
+            var products = _db.Products.Include(p => p.Category).Where(p => p.StockQuantity > 0).ToList();
             ViewBag.Categories = _db.Categories.ToList();
+
+            // ดึงโปรโมชั่นที่กำลัง "เปิดใช้งาน" ส่งไปให้หน้า POS คำนวณ
+            var activePromos = _db.Promotions.Where(p => p.IsActive == true).ToList();
+            ViewBag.PromotionsJson = JsonSerializer.Serialize(activePromos);
 
             return View(products);
         }
+
         [HttpPost]
-        public IActionResult Checkout([FromBody] List<CartItemViewModel> cartItems)
+        public IActionResult Checkout([FromBody] CheckoutViewModel data)
         {
-            if (cartItems == null || cartItems.Count == 0)
-            {
+            if (data.CartItems == null || data.CartItems.Count == 0)
                 return Json(new { success = false, message = "ตะกร้าสินค้าว่างเปล่า" });
-            }
 
             try
             {
-                // ดึง ID ของพนักงานที่กำลังล็อกอินอยู่ 
                 var cashierId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-
-                // สร้างเลขที่ใบเสร็จแบบอัตโนมัติ (เช่น REC20260326103015)
                 string receiptNo = "REC" + DateTime.Now.ToString("yyyyMMddHHmmss");
 
-                // คำนวณยอดรวมทั้งหมด
-                decimal totalAmount = cartItems.Sum(item => item.Price * item.Qty);
+                decimal totalAmount = data.CartItems.Sum(item => item.Price * item.Qty);
+                // ยอดสุทธิ = ยอดรวม - ส่วนลดที่หน้าเว็บคำนวณมาให้
+                decimal netAmount = totalAmount - data.DiscountAmount; 
 
-                // สร้างหัวบิล (Order) 
                 var newOrder = new Order
                 {
                     ReceiptNo = receiptNo,
                     OrderDate = DateTime.Now,
                     CashierId = cashierId,
-                    // CustomerId = null,
                     TotalAmount = totalAmount,
-                    DiscountAmount = 0,
-                    NetAmount = totalAmount,
-                    PaymentMethod = "Cash"
+                    DiscountAmount = data.DiscountAmount,
+                    NetAmount = netAmount,
+                    PaymentMethod = data.PaymentMethod
                 };
 
                 _db.Orders.Add(newOrder);
-                _db.SaveChanges();
+                _db.SaveChanges(); 
 
-                // วนลูปสินค้าในตะกร้า เพื่อสร้างรายละเอียดบิล (OrderDetail) และ ตัดสต็อก
-                foreach (var item in cartItems)
+                foreach (var item in data.CartItems)
                 {
                     var orderDetail = new Orderdetail
                     {
@@ -73,27 +67,43 @@ namespace FertilizerShop.Controllers
                         ProductId = item.Id,
                         Quantity = item.Qty,
                         UnitPrice = item.Price,
-                        SubTotal = item.Price * item.Qty
+                        SubTotal = item.Price * item.Qty 
                     };
                     _db.Orderdetails.Add(orderDetail);
 
-                    // ตัดสต็อกสินค้า
                     var product = _db.Products.Find(item.Id);
-                    if (product != null)
-                    {
-                        product.StockQuantity -= item.Qty;
-                    }
+                    if (product != null) product.StockQuantity -= item.Qty;
                 }
 
                 _db.SaveChanges();
-
-                return Json(new { success = true, orderId = newOrder.OrderId, receiptNo = newOrder.ReceiptNo });
+                return Json(new { success = true, orderId = newOrder.OrderId });
             }
             catch (Exception ex)
             {
-                // ถ้ามี Error จะส่งข้อความกลับไปโชว์ที่หน้าเว็บ
                 return Json(new { success = false, message = ex.InnerException?.Message ?? ex.Message });
             }
+        }
+
+        public IActionResult Receipt(int id)
+        {
+            // ดึงข้อมูลบิล พร้อมรายละเอียดสินค้าและชื่อพนักงานขาย
+            var order = _db.Orders
+                           .FirstOrDefault(o => o.OrderId == id);
+
+            if (order == null) return NotFound();
+
+            // ดึงรายการสินค้าในบิลนี้
+            ViewBag.OrderDetails = (from od in _db.Orderdetails
+                join p in _db.Products on od.ProductId equals p.ProductId
+                where od.OrderId == id
+                select new { 
+                    ProductName = p.Name, 
+                    Qty = od.Quantity, 
+                    Price = od.UnitPrice, 
+                    SubTotal = od.SubTotal 
+                }).ToList();
+
+            return View(order);
         }
     }
 }

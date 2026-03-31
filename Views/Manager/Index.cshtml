@@ -4,29 +4,86 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+<style>
+    .stat-card {
+        border-radius: 15px;
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .icon-shape {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .table-container {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    .badge-pill-custom {
+        padding: 6px 12px;
+        font-weight: 600;
+    }
+    /* ปรับแต่ง Scrollbar สำหรับตาราง */
+    .custom-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
+    }
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-speedometer2"></i> ภาพรวมระบบ (Manager)</h2>
+    <div>
+        <h2 class="fw-bold mb-0 text-dark"><i class="bi bi-graph-up-arrow text-success me-2"></i> แผงควบคุมผู้จัดการ</h2>
+        <p class="text-muted small">ติดตามความเคลื่อนไหวและสถานะสินค้าแบบ Real-time</p>
+    </div>
+    <div class="text-end">
+        <span class="badge bg-light text-dark border p-2">
+            <i class="bi bi-calendar3 me-1"></i> @DateTime.Today.ToString("dd MMMM yyyy")
+        </span>
+    </div>
 </div>
 
-<div class="row mb-4">
+<div class="row g-4 mb-4">
     <div class="col-md-6">
-        <div class="card shadow-sm border-0 bg-success text-white">
-            <div class="card-body p-4 d-flex align-items-center">
-                <i class="bi bi-cash-coin display-4 me-4"></i>
-                <div>
-                    <h5 class="card-title mb-1">ยอดขายวันนี้</h5>
-                    <h2 class="mb-0 fw-bold">฿ @Model.TodaySales.ToString("N2")</h2>
+        <div class="card stat-card border-0 shadow-sm" style="background: linear-gradient(135deg, #1d976c 0%, #167a57 100%); color: white;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-white-50 mb-1 fw-bold">ยอดขายวันนี้</p>
+                        <h1 class="mb-0 fw-bold">฿ @Model.TodaySales.ToString("N2")</h1>
+                    </div>
+                    <div class="icon-shape">
+                        <i class="bi bi-currency-bitcoin fs-1 text-white"></i>
+                    </div>
+                </div>
+                <div class="mt-3 small text-white-50">
+                    <i class="bi bi-arrow-up-circle-fill me-1"></i> อัปเดตล่าสุดเมื่อสักครู่
                 </div>
             </div>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card shadow-sm border-0 bg-info text-white">
-            <div class="card-body p-4 d-flex align-items-center">
-                <i class="bi bi-receipt display-4 me-4"></i>
-                <div>
-                    <h5 class="card-title mb-1">จำนวนบิลวันนี้</h5>
-                    <h2 class="mb-0 fw-bold">@Model.TodayOrdersCount บิล</h2>
+        <div class="card stat-card border-0 shadow-sm" style="background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%); color: white;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-white-50 mb-1 fw-bold">จำนวนคำสั่งซื้อวันนี้</p>
+                        <h1 class="mb-0 fw-bold">@Model.TodayOrdersCount <span class="fs-4 fw-normal">บิล</span></h1>
+                    </div>
+                    <div class="icon-shape">
+                        <i class="bi bi-receipt fs-1 text-white"></i>
+                    </div>
+                </div>
+                <div class="mt-3 small text-white-50">
+                    <i class="bi bi-check-circle-fill me-1"></i> ทำรายการสำเร็จครบถ้วน
                 </div>
             </div>
         </div>
@@ -34,18 +91,21 @@
 </div>
 
 <div class="row g-4">
-    
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0 border-top border-danger border-4 h-100">
-            <div class="card-header bg-white py-3">
-                <h5 class="mb-0 text-danger fw-bold"><i class="bi bi-box-arrow-down"></i> สินค้าสต็อกเหลือน้อย (< 10)</h5>
+    <div class="col-xl-6">
+        <div class="card shadow-sm border-0 h-100 table-container">
+            <div class="card-header bg-white py-3 d-flex align-items-center border-0 border-bottom">
+                <div class="bg-danger-subtle p-2 rounded-3 me-3">
+                    <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                </div>
+                <h5 class="mb-0 fw-bold text-dark">สินค้าสต็อกเหลือน้อย</h5>
             </div>
-            <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+            <div class="card-body p-0 custom-scroll" style="max-height: 400px; overflow-y: auto;">
                 <table class="table table-hover mb-0 align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>สินค้า</th>
-                            <th class="text-end">คงเหลือ</th>
+                    <thead class="bg-light">
+                        <tr class="small text-uppercase text-muted">
+                            <th class="ps-4">ข้อมูลสินค้า</th>
+                            <th class="text-center">ระดับสต็อก</th>
+                            <th class="text-end pe-4">สถานะ</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,19 +114,30 @@
                             foreach (var item in Model.LowStockProducts)
                             {
                                 <tr>
-                                    <td>
+                                    <td class="ps-4">
                                         <div class="fw-bold">@item.Name</div>
-                                        <small class="text-muted">@item.Sku</small>
+                                        <code class="text-primary small">@item.Sku</code>
                                     </td>
-                                    <td class="text-end">
-                                        <span class="badge bg-danger fs-6 rounded-pill">@item.StockQuantity</span>
+                                    <td class="text-center">
+                                        <div class="progress" style="height: 6px; width: 80px; margin: 0 auto;">
+                                            <div class="progress-bar bg-danger" style="width: @(item.StockQuantity * 10)%"></div>
+                                        </div>
+                                        <small class="text-muted mt-1 d-block">@item.StockQuantity / 10</small>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="badge bg-danger-subtle text-danger badge-pill-custom rounded-pill">ควรเติมของ</span>
                                     </td>
                                 </tr>
                             }
                         }
                         else
                         {
-                            <tr><td colspan="2" class="text-center py-4 text-success"><i class="bi bi-check-circle"></i> สต็อกปกติทั้งหมด</td></tr>
+                            <tr>
+                                <td colspan="3" class="text-center py-5">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/4436/4436481.png" width="60" class="mb-3 opacity-50">
+                                    <p class="text-muted">สต็อกสินค้าปกติทุกรายการ</p>
+                                </td>
+                            </tr>
                         }
                     </tbody>
                 </table>
@@ -74,17 +145,20 @@
         </div>
     </div>
 
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0 border-top border-warning border-4 h-100">
-            <div class="card-header bg-white py-3">
-                <h5 class="mb-0 text-warning text-dark fw-bold"><i class="bi bi-calendar-x"></i> ใกล้หมดอายุ (ภายใน 30 วัน)</h5>
+    <div class="col-xl-6">
+        <div class="card shadow-sm border-0 h-100 table-container">
+            <div class="card-header bg-white py-3 d-flex align-items-center border-0 border-bottom">
+                <div class="bg-warning-subtle p-2 rounded-3 me-3">
+                    <i class="bi bi-clock-history text-warning"></i>
+                </div>
+                <h5 class="mb-0 fw-bold text-dark">สินค้าใกล้หมดอายุ</h5>
             </div>
-            <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+            <div class="card-body p-0 custom-scroll" style="max-height: 400px; overflow-y: auto;">
                 <table class="table table-hover mb-0 align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>สินค้า</th>
-                            <th class="text-end">วันหมดอายุ</th>
+                    <thead class="bg-light">
+                        <tr class="small text-uppercase text-muted">
+                            <th class="ps-4">ข้อมูลสินค้า</th>
+                            <th class="text-end pe-4">วันหมดอายุ / เหลืออีก</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,30 +166,41 @@
                         {
                             foreach (var item in Model.ExpiringProducts)
                             {
-                                // คำนวณว่าเหลืออีกกี่วันจะหมดอายุ
                                 var daysLeft = (item.ExpiryDate.Value.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days;
-                                // (ถ้า Model ใช้ DateTime ให้ใช้: var daysLeft = (item.ExpiryDate.Value - DateTime.Today).Days;)
-
                                 <tr>
-                                    <td>
+                                    <td class="ps-4">
                                         <div class="fw-bold">@item.Name</div>
-                                        <small class="text-muted">@item.Sku</small>
+                                        <small class="text-muted">SKU: @item.Sku</small>
                                     </td>
-                                    <td class="text-end">
-                                        <div class="text-danger fw-bold">@item.ExpiryDate.Value.ToString("dd/MM/yyyy")</div>
-                                        <small class="text-muted">เหลือ @daysLeft วัน</small>
+                                    <td class="text-end pe-4">
+                                        <div class="fw-bold text-dark">@item.ExpiryDate.Value.ToString("dd MMM yyyy")</div>
+                                        @if (daysLeft <= 7)
+                                        {
+                                            <span class="badge bg-danger">อีก @daysLeft วัน</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">อีก @daysLeft วัน</span>
+                                        }
                                     </td>
                                 </tr>
                             }
                         }
                         else
                         {
-                            <tr><td colspan="2" class="text-center py-4 text-success"><i class="bi bi-check-circle"></i> ไม่มีสินค้าใกล้หมดอายุ</td></tr>
+                            <tr>
+                                <td colspan="2" class="text-center py-5">
+                                    <i class="bi bi-shield-check text-success display-4 d-block mb-3"></i>
+                                    <p class="text-muted">ไม่มีสินค้าที่กำลังจะหมดอายุ</p>
+                                </td>
+                            </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            <div class="card-footer bg-white border-0 py-3 text-center">
+                <a href="#" class="btn btn-sm btn-outline-success rounded-pill px-4">ดูรายงานทั้งหมด</a>
+            </div>
         </div>
     </div>
-
 </div>
