@@ -1,139 +1,208 @@
-﻿@{
-    ViewData["Title"] = "หน้าแรก - ระบบจัดการร้านปุ๋ย";
+﻿@model IEnumerable<FertilizerShop.Models.Product>
+@{
+    ViewData["Title"] = "หน้าแรก";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 <style>
     body {
-        font-family: 'Sarabun', sans-serif;
-        background-color: #f8f9fa;
+        background-color: #f8fafc;
     }
 
-    .hero-section {
-        background: linear-gradient(rgba(29, 151, 108, 0.9), rgba(22, 122, 87, 0.9)), 
-                    url('https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
-        background-size: cover;
-        background-position: center;
-        color: white;
-        padding: 100px 0;
-        border-radius: 0 0 50px 50px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        margin-top: -50px;
-    }
-
-    .btn-custom-lg {
-        padding: 12px 35px;
-        font-weight: 600;
-        border-radius: 50px;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .btn-login {
-        background-color: #ffffff;
-        color: #1d976c;
+    /* Hero Section - ปรับให้โค้งมนและรับกับ Layout ใหม่ */
+    .hero-banner {
+        background: linear-gradient(135deg, #1a2a23 0%, #1d976c 100%);
+        border-radius: 30px;
+        position: relative;
+        overflow: hidden;
         border: none;
     }
 
-    .btn-login:hover {
-        background-color: #e9ecef;
-        transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        color: #167a57;
+    .hero-banner::before {
+        content: "";
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 250px;
+        height: 250px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
     }
 
-    .btn-reg {
-        border: 2px solid #ffffff;
-        color: #ffffff;
+    /* Product Card - ปรับให้ดูพรีเมียมขึ้น */
+    .product-card {
+        border-radius: 25px;
+        background: #ffffff;
+        border: 1px solid rgba(0,0,0,0.03);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .btn-reg:hover {
-        background-color: rgba(255,255,255,0.1);
-        transform: translateY(-3px);
-        color: #ffffff;
+    .product-card:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.08) !important;
     }
 
-    .feature-card {
-        border: none;
-        border-radius: 20px;
-        padding: 30px;
-        background: #fff;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-        transition: transform 0.3s ease;
-        height: 100%;
-    }
-
-    .feature-card:hover {
-        transform: translateY(-10px);
-    }
-
-    .icon-box {
-        width: 60px;
-        height: 60px;
-        background: rgba(29, 151, 108, 0.1);
-        color: #1d976c;
-        border-radius: 15px;
+    .image-wrapper {
+        background: #f8fafc;
+        height: 220px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
-        margin-bottom: 20px;
+        position: relative;
+        border-radius: 25px 25px 0 0;
+    }
+
+    .price-tag {
+        color: #1d976c;
+        font-size: 1.6rem;
+        font-weight: 800;
+    }
+
+    .btn-view-details {
+        border-radius: 15px;
+        padding: 12px;
+        font-weight: 600;
+        transition: all 0.3s;
+        border: 2px solid #1d976c;
+        color: #1d976c;
+        background: transparent;
+    }
+
+    .btn-view-details:hover {
+        background-color: #1d976c;
+        color: white;
+        box-shadow: 0 5px 15px rgba(29, 151, 108, 0.3);
+    }
+
+    .section-title {
+        position: relative;
+        display: inline-block;
+        padding-bottom: 12px;
+    }
+
+    .section-title::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 5px;
+        background: linear-gradient(90deg, #1d976c, #93f9b9);
+        border-radius: 10px;
+    }
+    
+    /* สไตล์เพิ่มเติมสำหรับ Badge */
+    .badge-stock {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+        border-radius: 50px;
     }
 </style>
 
-<div class="hero-section text-center">
-    <div class="container">
-        <div class="mb-4">
-            <i class="fa-solid fa-seedling fa-4x animate__animated animate__bounceIn"></i>
-        </div>
-        <h1 class="display-4 fw-bold mb-3">@ViewBag.WelcomeMessage</h1>
-        <p class="lead mb-5 opacity-90 mx-auto" style="max-width: 700px;">
-            ยกระดับการบริหารจัดการร้านขายปุ๋ยของคุณด้วยเทคโนโลยีที่ทันสมัย ครบวงจร 
-            รองรับทั้งการขายหน้าร้าน สต็อกสินค้า และการจัดการบุคลากร
-        </p>
-
-        <div class="d-flex justify-content-center gap-3">
-            <a class="btn btn-custom-lg btn-login shadow" href="@Url.Action("Login","Account")">
-                <i class="fa-solid fa-right-to-bracket me-2"></i> เข้าสู่ระบบ
-            </a>
-            <a class="btn btn-custom-lg btn-reg" href="@Url.Action("Register","Account")">
-                <i class="fa-solid fa-user-plus me-2"></i> ลงทะเบียน
-            </a>
+<!-- Hero Section -->
+<div class="container mt-4">
+    <div class="hero-banner p-5 mb-5 text-white shadow-lg animate__animated animate__fadeIn">
+        <div class="row align-items-center py-4">
+            <div class="col-lg-7 text-center text-lg-start">
+                <h1 class="display-4 fw-bold mb-3">ยกระดับผลผลิตเกษตรไทย</h1>
+                <p class="lead mb-4 opacity-90">
+                    ที่ "ชาติชายฟาร์ม" เราคัดสรรปุ๋ยคุณภาพเยี่ยมจากทุกแบรนด์ดัง 
+                    เพื่อให้เกษตรกรไทยได้รับสิ่งที่ดีที่สุดในราคายุติธรรม
+                </p>
+                <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
+                    <a href="#product-list" class="btn btn-light btn-lg fw-bold text-success rounded-pill px-5 shadow">
+                        เริ่มช้อปเลย
+                    </a>
+                    @* <a href="#" class="btn btn-outline-light btn-lg rounded-pill px-4">
+                        <i class="bi bi-chat-dots me-2"></i> ปรึกษาผู้เชี่ยวชาญ
+                    </a> *@
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block text-center">
+                <i class="bi bi-leaf" style="font-size: 12rem; opacity: 0.2;"></i>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="container my-5 pt-4">
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="feature-card text-center">
-                <div class="icon-box mx-auto">
-                    <i class="fa-solid fa-cart-shopping"></i>
+<!-- Product List -->
+<div class="container" id="product-list">
+    <div class="mb-5">
+        <h3 class="fw-bold text-dark section-title"><i class="bi bi-stars text-success me-2"></i> สินค้าแนะนำสำหรับคุณ</h3>
+    </div>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="col animate__animated animate__fadeInUp">
+                    <div class="card h-100 shadow-sm border-0 product-card">
+                        <!-- Image Container -->
+                        <div class="image-wrapper">
+                            <i class="bi bi-box-seam-fill text-success opacity-25" style="font-size: 4.5rem;"></i>
+                            @if (item.StockQuantity < 5 && item.StockQuantity > 0)
+                            {
+                                <span class="position-absolute top-0 end-0 m-3 badge bg-warning text-dark shadow-sm rounded-pill">
+                                    <i class="bi bi-clock-history"></i> เหลือ @item.StockQuantity ชิ้นสุดท้าย
+                                </span>
+                            }
+                        </div>
+                        
+                        <!-- Content Body -->
+                        <div class="card-body d-flex flex-column p-4">
+                            @* <div class="mb-2">
+                                <span class="sku-badge">SKU: @item.Sku</span>
+                            </div> *@
+                            
+                            <h5 class="card-title fw-bold text-dark mb-3" style="height: 3rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                                @item.Name
+                            </h5>
+                            
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-end mb-3">
+                                    <div>
+                                        <small class="text-muted d-block small">ราคาเริ่มต้น</small>
+                                        <span class="price-tag">฿@item.Price.ToString("N0")</span>
+                                    </div>
+                                    
+                                    @if (item.StockQuantity > 0)
+                                    {
+                                        <div class="text-end">
+                                            <span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1">
+                                                <i class="bi bi-check-circle"></i> พร้อมส่ง
+                                            </span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-end">
+                                            <span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1">
+                                                <i class="bi bi-x-circle"></i> สินค้าหมด
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+    
+                                <a href="@Url.Action("Details", "Home", new { id = item.ProductId })"
+                                   class="btn btn-view-details w-100">
+                                    <i class="bi bi-eye me-1"></i> รายละเอียดสินค้า
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h5 class="fw-bold">ระบบขายหน้าร้าน (POS)</h5>
-                <p class="text-muted small">บันทึกรายการขาย ออกใบเสร็จ และคำนวณส่วนลดได้อย่างรวดเร็วและแม่นยำ</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="feature-card text-center">
-                <div class="icon-box mx-auto">
-                    <i class="fa-solid fa-boxes-stacked"></i>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <div class="bg-white p-5 rounded-4 shadow-sm border border-light">
+                    <i class="bi bi-inbox text-muted display-1 mb-3"></i>
+                    <p class="text-muted fs-5 mb-0">ขออภัย! ขณะนี้ยังไม่มีสินค้าในระบบ</p>
+                    <p class="small text-muted">กรุณากลับมาตรวจสอบใหม่อีกครั้งในภายหลัง</p>
                 </div>
-                <h5 class="fw-bold">จัดการสต็อกสินค้า</h5>
-                <p class="text-muted small">ตรวจสอบจำนวนปุ๋ยคงเหลือ แจ้งเตือนสินค้าใกล้หมด และจัดการประวัติการนำเข้า</p>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="feature-card text-center">
-                <div class="icon-box mx-auto">
-                    <i class="fa-solid fa-chart-line"></i>
-                </div>
-                <h5 class="fw-bold">รายงานและสถิติ</h5>
-                <p class="text-muted small">ดูยอดขายรายวัน รายเดือน และวิเคราะห์สินค้าขายดีเพื่อวางแผนการสั่งซื้อ</p>
-            </div>
-        </div>
+        }
     </div>
 </div>

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using FertilizerShop.ViewModels;
 using System.Security.Claims;
 using System.Text.Json;
+using ClosedXML.Excel;
+using System.IO;
 
 namespace FertilizerShop.Controllers
 {
@@ -406,6 +408,168 @@ namespace FertilizerShop.Controllers
                 _db.SaveChanges();
             }
             return RedirectToAction("Products");
+        }
+
+        // --- ส่วนของศูนย์รวมรายงาน (Reports) ---
+        [HttpGet]
+        public IActionResult Reports()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult ExportIncomeExpense(DateTime startDate, DateTime endDate)
+        {
+            // ปรับเวลาให้ครอบคลุมทั้งวัน (ตั้งแต่ 00:00:00 ถึง 23:59:59)
+            var endOfDay = endDate.Date.AddDays(1).AddTicks(-1);
+
+            // 1. ดึงข้อมูลรายรับ (จากการขาย)
+            var incomeOrders = _db.Orders
+                .Where(o => o.OrderDate >= startDate.Date && o.OrderDate <= endOfDay)
+                .OrderBy(o => o.OrderDate)
+                .ToList();
+
+            // 2. ดึงข้อมูลรายจ่าย (จากการสั่งซื้อ PO ที่ "รับของแล้ว" เท่านั้น)
+            var expensePOs = _db.Purchaseorders
+                .Where(p => p.OrderDate >= startDate.Date && p.OrderDate <= endOfDay && p.Status == "Received")
+                .OrderBy(p => p.OrderDate)
+                .ToList();
+
+            // เริ่มสร้างไฟล์ Excel
+            using (var workbook = new XLWorkbook())
+            {
+                // ชีตที่ 1: สรุปภาพรวม (Summary)
+                var wsSummary = workbook.Worksheets.Add("สรุปภาพรวม");
+                wsSummary.Cell(1, 1).Value = $"รายงานสรุปรายรับ-รายจ่าย ตั้งแต่วันที่ {startDate:dd/MM/yyyy} ถึง {endDate:dd/MM/yyyy}";
+                wsSummary.Range("A1:C1").Merge().Style.Font.Bold = true;
+
+                decimal totalIncome = incomeOrders.Sum(o => o.NetAmount);
+                decimal totalExpense = expensePOs.Sum(p => p.TotalAmount);
+                decimal profit = totalIncome - totalExpense;
+
+                wsSummary.Cell(3, 1).Value = "รวมรายรับจากการขาย:";
+                wsSummary.Cell(3, 2).Value = totalIncome;
+                wsSummary.Cell(4, 1).Value = "รวมรายจ่ายจากการสั่งซื้อ (ต้นทุน):";
+                wsSummary.Cell(4, 2).Value = totalExpense;
+                wsSummary.Cell(5, 1).Value = "กำไร / ขาดทุน เบื้องต้น:";
+                wsSummary.Cell(5, 2).Value = profit;
+
+                // ใส่สีให้กำไร/ขาดทุน
+                wsSummary.Cell(5, 2).Style.Font.FontColor = profit >= 0 ? XLColor.Green : XLColor.Red;
+                wsSummary.Columns().AdjustToContents();
+
+                // ชีตที่ 2: รายละเอียดรายรับ (Income)
+                var wsIncome = workbook.Worksheets.Add("รายละเอียดรายรับ");
+                wsIncome.Cell(1, 1).Value = "วันที่";
+                wsIncome.Cell(1, 2).Value = "เลขที่ใบเสร็จ";
+                wsIncome.Cell(1, 3).Value = "วิธีชำระเงิน";
+                wsIncome.Cell(1, 4).Value = "ยอดสุทธิ (บาท)";
+                wsIncome.Range("A1:D1").Style.Font.Bold = true;
+                wsIncome.Range("A1:D1").Style.Fill.BackgroundColor = XLColor.LightGreen;
+
+                int row = 2;
+                foreach (var item in incomeOrders)
+                {
+                    wsIncome.Cell(row, 1).Value = item.OrderDate?.ToString("dd/MM/yyyy HH:mm");
+                    wsIncome.Cell(row, 2).Value = item.ReceiptNo;
+                    wsIncome.Cell(row, 3).Value = item.PaymentMethod;
+                    wsIncome.Cell(row, 4).Value = item.NetAmount;
+                    row++;
+                }
+                wsIncome.Columns().AdjustToContents();
+
+
+                // ชีตที่ 3: รายละเอียดรายจ่าย (Expense)
+                var wsExpense = workbook.Worksheets.Add("รายละเอียดรายจ่าย");
+                wsExpense.Cell(1, 1).Value = "วันที่สั่งซื้อ";
+                wsExpense.Cell(1, 2).Value = "เลขที่ PO";
+                wsExpense.Cell(1, 3).Value = "ยอดรวมต้นทุน (บาท)";
+                wsExpense.Range("A1:C1").Style.Font.Bold = true;
+                wsExpense.Range("A1:C1").Style.Fill.BackgroundColor = XLColor.LightCoral;
+
+                int rowExp = 2;
+                foreach (var item in expensePOs)
+                {
+                    wsExpense.Cell(rowExp, 1).Value = item.OrderDate?.ToString("dd/MM/yyyy HH:mm");
+                    wsExpense.Cell(rowExp, 2).Value = "PO-" + item.PoId.ToString("D4");
+                    wsExpense.Cell(rowExp, 3).Value = item.TotalAmount;
+                    rowExp++;
+                }
+                wsExpense.Columns().AdjustToContents();
+
+                // แปลงไฟล์ Excel เป็น Stream เพื่อให้เบราว์เซอร์ดาวน์โหลด
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    string fileName = $"IncomeExpenseReport_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+                    // ส่งไฟล์กลับไปให้ผู้ใช้ดาวน์โหลด
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
+        }
+        [HttpPost]
+        public IActionResult ExportInventory()
+        {
+            // ดึงข้อมูลสินค้าทั้งหมด เรียงตามชื่อสินค้า
+            var products = _db.Products.OrderBy(p => p.Name).ToList();
+
+            using (var workbook = new XLWorkbook())
+            {
+                var ws = workbook.Worksheets.Add("รายงานสต็อกสินค้า");
+
+                // 1. สร้างหัวตาราง
+                ws.Cell(1, 1).Value = "รหัสสินค้า (SKU)";
+                ws.Cell(1, 2).Value = "ชื่อสินค้า";
+                ws.Cell(1, 3).Value = "จำนวนคงเหลือ (ชิ้น/กระสอบ)";
+                ws.Cell(1, 4).Value = "สถานะสต็อก";
+
+                ws.Range("A1:D1").Style.Font.Bold = true;
+                ws.Range("A1:D1").Style.Fill.BackgroundColor = XLColor.LightSkyBlue;
+
+                // 2. วนลูปใส่ข้อมูล
+                int row = 2;
+                foreach (var p in products)
+                {
+                    ws.Cell(row, 1).Value = p.Sku;
+                    ws.Cell(row, 2).Value = p.Name;
+                    ws.Cell(row, 3).Value = p.StockQuantity;
+
+                    // เช็คสถานะพร้อมใส่สีตัวอักษรใน Excel อัตโนมัติ!
+                    if (p.StockQuantity == 0)
+                    {
+                        ws.Cell(row, 4).Value = "หมดสต็อก (วิกฤต)";
+                        ws.Cell(row, 4).Style.Font.FontColor = XLColor.Red;
+                        ws.Cell(row, 4).Style.Font.Bold = true;
+                    }
+                    else if (p.StockQuantity <= 10)
+                    {
+                        ws.Cell(row, 4).Value = "ใกล้หมด (ต้องสั่งเพิ่ม)";
+                        ws.Cell(row, 4).Style.Font.FontColor = XLColor.DarkOrange;
+                    }
+                    else
+                    {
+                        ws.Cell(row, 4).Value = "ปกติ";
+                        ws.Cell(row, 4).Style.Font.FontColor = XLColor.Green;
+                    }
+
+                    row++;
+                }
+
+                // จัดความกว้างคอลัมน์ให้อ่านง่าย
+                ws.Columns().AdjustToContents();
+
+                // 3. แปลงไฟล์และส่งให้ดาวน์โหลด
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    string fileName = $"InventoryReport_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+                    
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
         }
     }
 }
