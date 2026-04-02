@@ -165,6 +165,10 @@
                            class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Dashboard" ? "active" : "")">
                         <i class="bi bi-grid-1x2-fill"></i> แดชบอร์ด
                     </a>
+                    <a href="@Url.Action("Reports", "Owner")"
+                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Reports" ? "active" : "")">
+                        <i class="bi bi-file-earmark-bar-graph-fill"></i> ศูนย์รวมรายงาน
+                    </a>
                     <a href="@Url.Action("Employees", "Owner")"
                            class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Employees" || ViewContext.RouteData.Values["Action"].ToString() == "AddEmployee" ? "active" : "")">
                         <i class="bi bi-people-fill"></i> จัดการพนักงาน

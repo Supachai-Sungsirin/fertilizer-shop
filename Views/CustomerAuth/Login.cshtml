@@ -1,0 +1,133 @@
+@model FertilizerShop.ViewModels.CustomerLoginViewModel
+@{
+    ViewData["Title"] = "เข้าสู่ระบบ (สำหรับลูกค้า)";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .login-card {
+        border-radius: 20px;
+        overflow: hidden;
+        background: #ffffff;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.05) !important;
+    }
+
+    .login-header {
+        background: linear-gradient(135deg, #1d976c 0%, #1a2a23 100%);
+        padding: 40px 20px;
+        color: white;
+        border: none;
+    }
+
+    .form-floating > .form-control {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .form-floating > .form-control:focus {
+        border-color: #1d976c;
+        box-shadow: 0 0 0 4px rgba(29, 151, 108, 0.1);
+    }
+
+    .btn-login {
+        background: linear-gradient(45deg, #1d976c, #167a57);
+        border: none;
+        border-radius: 50px;
+        padding: 12px;
+        font-weight: 700;
+        transition: all 0.3s;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(29, 151, 108, 0.3);
+        color: white;
+    }
+
+    .reg-link {
+        color: #1d976c;
+        font-weight: 700;
+        text-decoration: none;
+        position: relative;
+        padding-bottom: 2px;
+    }
+
+    .reg-link::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: #1d976c;
+        transition: width 0.3s;
+    }
+
+    .reg-link:hover::after {
+        width: 100%;
+    }
+</style>
+
+<div class="container mt-5 mb-5 animate__animated animate__fadeIn">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" 
+                     style="border-radius: 15px; background-color: #dcfce7; color: #166534;" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card login-card border-0">
+                <div class="login-header text-center">
+                    <h3 class="fw-bold mb-1">เข้าสู่ระบบสมาชิก</h3>
+                    <p class="small mb-0 opacity-75">ยินดีต้อนรับสู่ครอบครัวชาติชายฟาร์ม</p>
+                </div>
+                
+                <div class="card-body p-4 p-sm-5">
+                    <form asp-action="Login" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 small text-center mb-4" style="border-radius: 10px;"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Phone" class="form-control" placeholder="08xxxxxxxx" maxlength="10" />
+                            <label asp-for="Phone" class="text-muted small">
+                                <i class="bi bi-telephone me-1"></i> เบอร์โทรศัพท์
+                            </label>
+                            <span asp-validation-for="Phone" class="text-danger small ms-2"></span>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <input asp-for="Password" class="form-control" type="password" placeholder="รหัสผ่าน" />
+                            <label asp-for="Password" class="text-muted small">
+                                <i class="bi bi-shield-lock me-1"></i> รหัสผ่าน
+                            </label>
+                            <span asp-validation-for="Password" class="text-danger small ms-2"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100 btn-login shadow-sm mb-4">
+                            เข้าสู่ระบบ <i class="bi bi-arrow-right-short ms-1"></i>
+                        </button>
+                    </form>
+
+                    <hr class="opacity-10 mb-4">
+
+                    <div class="text-center">
+                        <p class="text-muted small mb-1">ยังไม่เป็นสมาชิกกับเรา?</p> 
+                        <a href="@Url.Action("Register", "CustomerAuth")" class="reg-link">
+                            <i class="bi bi-person-plus me-1"></i> สมัครสมาชิกใหม่ที่นี่
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="@Url.Action("Index", "Home")" class="text-muted small text-decoration-none">
+                    <i class="bi bi-chevron-left"></i> กลับไปหน้าหลัก
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

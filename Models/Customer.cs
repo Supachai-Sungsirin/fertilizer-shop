@@ -17,5 +17,7 @@ public partial class Customer
 
     public DateTime? CreatedAt { get; set; }
 
+    public string? PasswordHash { get; set; }
+
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 }

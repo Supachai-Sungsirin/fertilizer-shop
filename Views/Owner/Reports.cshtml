@@ -1,0 +1,136 @@
+@{
+    ViewData["Title"] = "ศูนย์รวมรายงาน (Reports Center)";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .report-card {
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    .card-icon-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+
+    .bg-soft-success { background-color: #dcfce7; color: #166534; }
+    .bg-soft-primary { background-color: #dbeafe; color: #1e40af; }
+
+    .form-label-custom {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        font-weight: 700;
+    }
+
+    .input-date-custom {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        padding: 10px;
+        transition: all 0.2s;
+    }
+
+    .input-date-custom:focus {
+        border-color: #1d976c;
+        box-shadow: 0 0 0 3px rgba(29, 151, 108, 0.1);
+    }
+
+    .btn-download {
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+</style>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-bar-graph text-success me-2"></i> ศูนย์รวมรายงาน</h2>
+        <p class="text-muted small mb-0">ส่งออกข้อมูลสำคัญเป็นไฟล์ Excel เพื่อใช้ในการวิเคราะห์และทำบัญชี</p>
+    </div>
+    <div class="text-muted small bg-white border px-3 py-2 rounded-pill shadow-sm">
+        <i class="bi bi-info-circle me-1 text-primary"></i> ข้อมูลอัปเดตแบบ Real-time
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- รายงานรายรับ-รายจ่าย -->
+    <div class="col-md-6">
+        <div class="card report-card shadow-sm border-0 border-top border-success border-4 h-100">
+            <div class="card-body p-4">
+                <div class="card-icon-circle bg-soft-success">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">สรุปรายรับ - รายจ่าย</h5>
+                <p class="text-muted small mb-4">ส่งออกข้อมูลรายรับจากการขาย และรายจ่ายจากการสั่งซื้อตามช่วงเวลาที่กำหนด</p>
+
+                <form asp-action="ExportIncomeExpense" method="post" target="_blank">
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label-custom mb-2 d-block">ตั้งแต่วันที่</label>
+                            <input type="date" name="startDate" class="form-control input-date-custom" required
+                                   value="@DateTime.Now.ToString("yyyy-MM-01")" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-custom mb-2 d-block">ถึงวันที่</label>
+                            <input type="date" name="endDate" class="form-control input-date-custom" required
+                                   value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-download w-100 shadow-sm">
+                        <i class="bi bi-file-earmark-excel me-2"></i> ดาวน์โหลดรายงาน (Excel)
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- รายงานสต็อกสินค้า -->
+    <div class="col-md-6">
+        <div class="card report-card shadow-sm border-0 border-top border-primary border-4 h-100">
+            <div class="card-body p-4 d-flex flex-column">
+                <div class="card-icon-circle bg-soft-primary">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">สถานะสต็อกสินค้าคงคลัง</h5>
+                <p class="text-muted small mb-4">ข้อมูลรายการสินค้าทั้งหมด สต็อกคงเหลือ และมูลค่าสินค้าหมุนเวียน ณ ปัจจุบัน</p>
+
+                <div class="bg-light rounded-4 p-4 mt-auto border border-dashed border-primary border-opacity-25">
+                    <div class="text-center">
+                        <p class="text-muted small mb-3">ระบบจะคำนวณมูลค่าสินค้าจากราคาต้นทุนและจำนวนคงเหลือล่าสุดในระบบ</p>
+                        <form asp-action="ExportInventory" method="post" target="_blank">
+                            <button type="submit" class="btn btn-primary btn-download w-100 shadow-sm p-3">
+                                <i class="bi bi-cloud-arrow-down-fill me-2 fs-5"></i> ส่งออกข้อมูลสินค้า (Excel)
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-5 text-center p-5 bg-white rounded-5 shadow-sm border border-light">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <i class="bi bi-shield-check fs-1 text-success opacity-50 mb-3 d-block"></i>
+            <h6 class="fw-bold">ระบบรักษาความปลอดภัยของข้อมูล</h6>
+            <p class="text-muted small">รายงานทุกฉบับมีการบันทึกประวัติการดาวน์โหลดโดยระบุชื่อผู้ใช้งานและวันเวลาที่ทำการส่งออกข้อมูลเพื่อความปลอดภัย</p>
+        </div>
+    </div>
+</div>
