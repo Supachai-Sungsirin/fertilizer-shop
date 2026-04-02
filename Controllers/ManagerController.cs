@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using FertilizerShop.Models;
 using FertilizerShop.ViewModels;
+using System.Security.Claims;
 
 namespace FertilizerShop.Controllers
 {
@@ -140,49 +141,129 @@ namespace FertilizerShop.Controllers
             return View(order);
         }
 
-        // --- ส่วนการรับสินค้าเข้าสต็อก ---
+        // --- ส่วนระบบใบสั่งซื้อ (Purchase Order) ---
         [HttpGet]
-        public IActionResult ReceiveStock()
+        public IActionResult CreatePO()
         {
-            // ดึงรายการสินค้าทั้งหมดมาทำ Dropdown โชว์รหัส, ชื่อ และสต็อกปัจจุบัน ให้ผู้จัดการดูง่ายๆ
-            var products = _db.Products.Select(p => new
+            // ดึงรายชื่อ Supplier มาทำ Dropdown
+            // หมายเหตุ: เช็คชื่อ Property ของ Model Supplier ให้ตรงกับของคุณด้วยนะครับ
+            ViewBag.Suppliers = new SelectList(_db.Suppliers, "SupplierId", "Name");
+
+            // ดึงรายชื่อสินค้าทั้งหมดส่งไปให้ JavaScript วาด Dropdown
+            ViewBag.ProductsList = _db.Products.Select(p => new
             {
-                p.ProductId,
-                DisplayText = $"[{p.Sku}] {p.Name} (มีอยู่: {p.StockQuantity})"
+                id = p.ProductId,
+                name = p.Name,
+                sku = p.Sku
             }).ToList();
 
-            ViewBag.ProductList = new SelectList(products, "ProductId", "DisplayText");
             return View();
         }
 
         [HttpPost]
-        public IActionResult ReceiveStock(ReceiveStockViewModel data)
+        public IActionResult CreatePO([FromBody] CreatePOViewModel data)
         {
-            if (ModelState.IsValid)
+            if (data == null || data.Items == null || !data.Items.Any())
             {
-                var product = _db.Products.Find(data.ProductId);
-                if (product != null)
-                {
-                    // เอาสต็อกเดิม + กับจำนวนที่รับเข้าใหม่
-                    product.StockQuantity += data.QuantityAdded;
-
-                    _db.SaveChanges();
-
-                    TempData["SuccessMessage"] = $"เพิ่ม '{product.Name}' จำนวน {data.QuantityAdded} ชิ้น เข้าสต็อกเรียบร้อยแล้ว! (สต็อกใหม่: {product.StockQuantity})";
-
-                    return RedirectToAction("ReceiveStock");
-                }
-                ModelState.AddModelError("", "ไม่พบสินค้านี้ในระบบ");
+                return Json(new { success = false, message = "กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ" });
             }
 
-            var products = _db.Products.Select(p => new
+            try
             {
-                p.ProductId,
-                DisplayText = $"[{p.Sku}] {p.Name} (มีอยู่: {p.StockQuantity})"
-            }).ToList();
-            ViewBag.ProductList = new SelectList(products, "ProductId", "DisplayText");
+                // ดึง ID ผู้จัดการที่กดสั่งซื้อ
+                var managerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            return View(data);
+                // 1. สร้างหัวบิลสั่งซื้อ (PO)
+                var po = new Purchaseorder
+                {
+                    SupplierId = data.SupplierId,
+                    ManagerId = managerId,
+                    OrderDate = DateTime.Now,
+                    Status = "Pending", // สร้างบิลใหม่ สถานะคือ "รอของมาส่ง"
+                    TotalAmount = data.Items.Sum(i => i.Qty * i.UnitCost)
+                };
+
+                _db.Purchaseorders.Add(po);
+                _db.SaveChanges(); // เซฟเพื่อให้ได้ PoId กลับมาก่อน
+
+                // 2. บันทึกรายละเอียดสินค้าในบิล
+                foreach (var item in data.Items)
+                {
+                    var detail = new Purchaseorderdetail
+                    {
+                        PoId = po.PoId,
+                        ProductId = item.ProductId,
+                        Quantity = item.Qty,
+                        UnitCost = item.UnitCost,
+                        SubTotal = item.Qty * item.UnitCost
+                    };
+                    _db.Purchaseorderdetails.Add(detail);
+                }
+
+                _db.SaveChanges();
+                return Json(new { success = true, poId = po.PoId });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.InnerException?.Message ?? ex.Message });
+            }
+        }
+
+        // --- ส่วนการจัดการใบสั่งซื้อ (Purchase Order History & Receiving) ---
+        public IActionResult POHistory()
+        {
+            // ดึงใบสั่งซื้อทั้งหมด เรียงจากล่าสุดขึ้นก่อน
+            // *หมายเหตุ: เช็คชื่อ Navigation Property ใน Models/Purchaseorder.cs ของคุณด้วยนะครับ
+            // มันอาจจะชื่อ Supplier หรือ Manager / ManagerNavigation
+            var pos = _db.Purchaseorders
+                         .Include(p => p.Supplier)
+                         .OrderByDescending(p => p.OrderDate)
+                         .ToList();
+            return View(pos);
+        }
+
+        public IActionResult PODetails(int id)
+        {
+            var po = _db.Purchaseorders
+                        .Include(p => p.Supplier)
+                        .FirstOrDefault(p => p.PoId == id);
+
+            if (po == null) return NotFound();
+
+            // ดึงรายละเอียดสินค้าในบิล PO
+            var details = _db.Purchaseorderdetails
+                             .Include(d => d.Product)
+                             .Where(d => d.PoId == id)
+                             .ToList();
+
+            ViewBag.PODetails = details;
+            return View(po);
+        }
+
+        [HttpPost]
+        public IActionResult MarkPOAsReceived(int id)
+        {
+            var po = _db.Purchaseorders.Find(id);
+            if (po != null && po.Status == "Pending")
+            {
+                // 1. เปลี่ยนสถานะบิล
+                po.Status = "Received";
+
+                // 2. ดึงรายการสินค้าในบิลนี้มาวนลูปบวกสต็อก
+                var details = _db.Purchaseorderdetails.Where(d => d.PoId == id).ToList();
+                foreach (var item in details)
+                {
+                    var product = _db.Products.Find(item.ProductId);
+                    if (product != null)
+                    {
+                        product.StockQuantity += item.Quantity; // อัปเดตสต็อกจริงที่นี่!
+                    }
+                }
+
+                _db.SaveChanges();
+                TempData["SuccessMessage"] = $"รับสินค้าจากใบสั่งซื้อ PO-{po.PoId} เข้าสต็อกเรียบร้อยแล้ว!";
+            }
+            return RedirectToAction("PODetails", new { id = id });
         }
     }
 }

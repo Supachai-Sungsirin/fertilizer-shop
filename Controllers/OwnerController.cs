@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using FertilizerShop.ViewModels;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace FertilizerShop.Controllers
 {
@@ -21,9 +22,87 @@ namespace FertilizerShop.Controllers
         // Dashboard ภาพรวม
         public IActionResult Dashboard()
         {
-            return View();
-        }
+            var today = DateTime.Today;
+            var startOfMonth = new DateTime(today.Year, today.Month, 1);
 
+            // 1. คำนวณยอดขายวันนี้ และ เดือนนี้
+            var todayOrders = _db.Orders.Where(o => o.OrderDate.Value.Date == today).ToList();
+            var monthOrders = _db.Orders.Where(o => o.OrderDate.Value.Date >= startOfMonth).ToList();
+
+            // 2. หาสินค้าใกล้หมดสต็อก
+            var lowStock = _db.Products.Count(p => p.StockQuantity <= 10);
+
+            // 3. หาสินค้าขายดี 5 อันดับแรก (Top 5 Best Sellers)
+            var topProducts = _db.Orderdetails
+                                 .Include(od => od.Product)
+                                 .AsEnumerable() // ดึงมาประมวลผลใน Memory
+                                 .GroupBy(od => new { od.ProductId, od.Product?.Name })
+                                 .Select(g => new TopSellingProduct
+                                 {
+                                     ProductName = g.Key.Name ?? "ไม่ทราบชื่อ",
+                                     TotalQty = g.Sum(x => x.Quantity),
+                                     TotalAmount = g.Sum(x => x.SubTotal)
+                                 })
+                                 .OrderByDescending(x => x.TotalQty)
+                                 .Take(5)
+                                 .ToList();
+
+            // 4. เตรียมข้อมูลทำ "กราฟยอดขายย้อนหลัง 7 วัน"
+            var last7Days = today.AddDays(-6);
+            var recentOrders = _db.Orders.Where(o => o.OrderDate.Value.Date >= last7Days).ToList();
+
+            // สร้างลิสต์วันที่ 7 วันเพื่อป้องกันวันไหนไม่มีบิล กราฟจะได้ไม่แหว่ง
+            var chartLabels = new List<string>();
+            var chartValues = new List<decimal>();
+
+            for (int i = 6; i >= 0; i--)
+            {
+                var targetDate = today.AddDays(-i);
+                chartLabels.Add(targetDate.ToString("dd/MM")); // ชื่อแกน X (เช่น 25/03)
+                                                               // ยอดรวมของวันนั้น แกน Y
+                chartValues.Add(recentOrders.Where(o => o.OrderDate.Value.Date == targetDate).Sum(o => o.TotalAmount));
+            }
+
+            // ส่งข้อมูลกราฟไปให้ JavaScript
+            ViewBag.ChartLabels = JsonSerializer.Serialize(chartLabels);
+            ViewBag.ChartValues = JsonSerializer.Serialize(chartValues);
+
+            // ดึงสินค้าที่สต็อกเหลือน้อยที่สุด 5 อันดับแรก (น้อยกว่าหรือเท่ากับ 10)
+            var topLowStock = _db.Products
+                                 .Where(p => p.StockQuantity <= 10)
+                                 .OrderBy(p => p.StockQuantity) // เรียงจากน้อยไปมาก
+                                 .Take(5)
+                                 .ToList();
+
+            // ดึงพนักงานที่เปิดบิลได้เยอะที่สุด 5 อันดับแรก (นับจากจำนวนบิล)
+            var topEmployees = _db.Orders
+                                  .Include(o => o.Cashier)
+                                  .AsEnumerable() // ดึงมาคำนวณใน Memory
+                                  .GroupBy(o => new { o.CashierId, FirstName = o.Cashier?.FirstName, LastName = o.Cashier?.LastName })
+                                  .Select(g => new TopEmployeeViewModel
+                                  {
+                                      EmployeeName = $"{g.Key.FirstName} {g.Key.LastName}".Trim(),
+                                      TotalBills = g.Count(), // นับจำนวนบิล
+                                      TotalSales = g.Sum(x => x.TotalAmount) // รวมยอดขาย
+                                  })
+                                  .OrderByDescending(x => x.TotalBills) // เรียงจากจำนวนบิลมากสุด
+                                  .Take(5)
+                                  .ToList();
+
+            // แพ็คข้อมูลทั้งหมดลง ViewModel
+            var model = new OwnerDashboardViewModel
+            {
+                TodaySales = todayOrders.Sum(o => o.TotalAmount),
+                MonthSales = monthOrders.Sum(o => o.TotalAmount),
+                TotalOrdersMonth = monthOrders.Count,
+                LowStockCount = lowStock,
+                TopProducts = topProducts,
+                LowStockProductsList = topLowStock, 
+                TopEmployees = topEmployees       
+            };
+
+            return View(model);
+        }
         // จัดการพนักงาน
         public IActionResult Employees()
         {

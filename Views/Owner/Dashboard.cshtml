@@ -1,212 +1,272 @@
+@model FertilizerShop.ViewModels.OwnerDashboardViewModel
 @{
-    ViewData["Title"] = "แดชบอร์ด - ร้านปุ๋ย";
+    ViewData["Title"] = "แดชบอร์ดเจ้าของร้าน";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<!-- Bootstrap Icons CDN -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
 <style>
-    :root {
-        --primary: #2d7a3a;
-        --primary-light: #f0faf2;
-        --success: #10b981;
-        --success-light: #ecfdf5;
-        --warning: #f59e0b;
-        --warning-light: #fffbeb;
-        --danger: #ef4444;
-        --danger-light: #fef2f2;
-        --info: #3b82f6;
-        --info-light: #eff6ff;
-        --text-dark: #1e293b;
-        --text-muted: #64748b;
-        --border: #e2e8f0;
-        --bg-light: #f8fafc;
-        --card-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
-        --card-shadow-hover: 0 4px 12px rgba(0,0,0,.10), 0 8px 24px rgba(0,0,0,.06);
-    }
+    /* Gradient Cards */
+    .card-stat { border: none; border-radius: 20px; transition: all 0.3s ease; overflow: hidden; position: relative; }
+    .card-stat:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+    
+    .bg-grad-green { background: linear-gradient(135deg, #1d976c 0%, #116649 100%); }
+    .bg-grad-blue { background: linear-gradient(135deg, #2193b0 0%, #1d6a80 100%); }
+    .bg-grad-purple { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); }
+    .bg-grad-red { background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%); }
 
-    body {
-        background-color: var(--bg-light);
-        color: var(--text-dark);
-        font-family: 'Sarabun', 'Segoe UI', sans-serif;
+    .stat-icon { position: absolute; right: -10px; bottom: -10px; font-size: 5rem; opacity: 0.15; transform: rotate(-15deg); }
+    
+    .table-custom thead th { 
+        background-color: #f8fafc; 
+        text-transform: uppercase; 
+        font-size: 0.75rem; 
+        letter-spacing: 1px; 
+        border: none; 
     }
+    
+    .chart-container { position: relative; height: 300px; width: 100%; }
 
-    /* ── Page header ── */
-    .page-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: .75rem;
-        margin-bottom: 1.75rem;
+    .rank-badge {
+        width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold;
     }
-    .page-header h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-dark);
-        margin: 0;
-    }
-    .page-header .badge-live {
-        display: inline-flex;
-        align-items: center;
-        gap: .35rem;
-        font-size: .75rem;
-        font-weight: 600;
-        color: var(--success);
-        background: var(--success-light);
-        border: 1px solid #a7f3d0;
-        border-radius: 999px;
-        padding: .25rem .75rem;
-    }
-    .badge-live .dot {
-        width: 7px; height: 7px;
-        background: var(--success);
-        border-radius: 50%;
-        animation: pulse 1.8s ease-in-out infinite;
-    }
-
-    /* ── KPI cards ── */
-    .kpi-card {
-        background: #fff;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 1.4rem 1.5rem;
-        box-shadow: var(--card-shadow);
-        transition: box-shadow .2s, transform .2s;
-        height: 100%;
-        position: relative;
-        overflow: hidden;
-    }
-    .kpi-card:hover {
-        box-shadow: var(--card-shadow-hover);
-        transform: translateY(-2px);
-    }
-    .kpi-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 3px;
-        border-radius: 14px 14px 0 0;
-    }
-    .kpi-card.c-success::before { background: var(--success); }
-    .kpi-card.c-info::before    { background: var(--info); }
-    .kpi-card.c-warning::before { background: var(--warning); }
-    .kpi-card.c-danger::before  { background: var(--danger); }
-    .kpi-card.c-primary::before { background: var(--primary); }
-
-    .kpi-icon {
-        width: 46px; height: 46px;
-        border-radius: 12px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.3rem;
-        flex-shrink: 0;
-    }
-    .kpi-icon.bg-success-soft { background: var(--success-light); color: var(--success); }
-    .kpi-icon.bg-info-soft    { background: var(--info-light);    color: var(--info); }
-    .kpi-icon.bg-warning-soft { background: var(--warning-light); color: var(--warning); }
-    .kpi-icon.bg-danger-soft  { background: var(--danger-light);  color: var(--danger); }
-    .kpi-icon.bg-primary-soft { background: var(--primary-light); color: var(--primary); }
-
-    .kpi-label {
-        font-size: .78rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: .05em;
-        margin-bottom: .3rem;
-    }
-    .kpi-value {
-        font-size: 1.7rem;
-        font-weight: 800;
-        color: var(--text-dark);
-        line-height: 1.15;
-        margin-bottom: .3rem;
-    }
-    .kpi-change {
-        font-size: .78rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: .2rem;
-    }
-    .kpi-change.up   { color: var(--success); }
-    .kpi-change.down { color: var(--danger); }
-
 </style>
 
-<div class="page-header">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
     <div>
-        <h2><i class="bi bi-flower1 me-2" style="color:var(--primary)"></i>แดชบอร์ดภาพรวม</h2>
+        <h2 class="fw-bold mb-1"><i class="bi bi-pie-chart-fill text-success me-2"></i> สรุปผลประกอบการ</h2>
+        <p class="text-muted small mb-0">วิเคราะห์ยอดขายและประสิทธิภาพของร้าน "ชาติชายฟาร์ม"</p>
     </div>
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-        @* <span class="badge-live"><span class="dot"></span>Live Data</span> *@
-        <select class="form-select form-select-sm" style="width:auto;font-size:.8rem;" id="dateRange">
-            <option>วันนี้</option>
-            <option>7 วันที่ผ่านมา</option>
-            <option>30 วันที่ผ่านมา</option>
-            <option>เดือนนี้</option>
-        </select>
+    <div class="badge bg-white text-dark border p-2 shadow-sm rounded-pill">
+        <i class="bi bi-clock-history me-1 text-success"></i> ข้อมูล ณ วันที่ @DateTime.Now.ToString("dd MMM yyyy HH:mm")
     </div>
 </div>
 
-<div class="row g-3 mb-4">
-
-    <!-- ยอดขาย -->
-    <div class="col-6 col-lg-3">
-        <div class="kpi-card c-success">
-            <div class="d-flex align-items-start justify-content-between">
-                <div>
-                    <p class="kpi-label">ยอดขายวันนี้</p>
-                    <div class="kpi-value">฿38,500</div>
-                </div>
-                <div class="kpi-icon bg-success-soft"><i class="bi bi-currency-dollar"></i></div>
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-stat shadow-sm bg-grad-green text-white h-100">
+            <div class="card-body p-4">
+                <h6 class="opacity-75 fw-bold text-uppercase small">ยอดขายวันนี้</h6>
+                <h2 class="mb-0 fw-bold">฿ @Model.TodaySales.ToString("N0")</h2>
+                <div class="mt-2 small"><i class="bi bi-arrow-up-short"></i> อัปเดตล่าสุด</div>
+                <i class="bi bi-currency-dollar stat-icon"></i>
             </div>
         </div>
     </div>
-
-    <!-- คำสั่งซื้อ -->
-    <div class="col-6 col-lg-3">
-        <div class="kpi-card c-info">
-            <div class="d-flex align-items-start justify-content-between">
-                <div>
-                    <p class="kpi-label">บิลขายวันนี้</p>
-                    <div class="kpi-value">17 บิล</div>
-                </div>
-                <div class="kpi-icon bg-info-soft"><i class="bi bi-receipt-cutoff"></i></div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-stat shadow-sm bg-grad-blue text-white h-100">
+            <div class="card-body p-4">
+                <h6 class="opacity-75 fw-bold text-uppercase small">รายได้เดือนนี้</h6>
+                <h2 class="mb-0 fw-bold">฿ @Model.MonthSales.ToString("N0")</h2>
+                <div class="mt-2 small"><i class="bi bi-calendar-check"></i> ประจำเดือนปัจจุบัน</div>
+                <i class="bi bi-graph-up stat-icon"></i>
             </div>
         </div>
     </div>
-
-    <!-- ปุ๋ยใกล้หมดสต็อก -->
-    <div class="col-6 col-lg-3">
-        <div class="kpi-card c-warning">
-            <div class="d-flex align-items-start justify-content-between">
-                <div>
-                    <p class="kpi-label">สินค้าใกล้หมดสต็อก</p>
-                    <div class="kpi-value">6 รายการ</div>
-                </div>
-                <div class="kpi-icon bg-warning-soft"><i class="bi bi-exclamation-triangle-fill"></i></div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-stat shadow-sm bg-grad-purple text-white h-100">
+            <div class="card-body p-4">
+                <h6 class="opacity-75 fw-bold text-uppercase small">บิลทั้งหมด (เดือนนี้)</h6>
+                <h2 class="mb-0 fw-bold">@Model.TotalOrdersMonth <span class="fs-4 fw-normal">บิล</span></h2>
+                <div class="mt-2 small"><i class="bi bi-receipt"></i> ปริมาณการซื้อขาย</div>
+                <i class="bi bi-cart4 stat-icon"></i>
             </div>
         </div>
     </div>
-
-    <!-- น้ำหนักปุ๋ยที่ขาย -->
-    <div class="col-6 col-lg-3">
-        <div class="kpi-card c-primary">
-            <div class="d-flex align-items-start justify-content-between">
-                <div>
-                    <p class="kpi-label">ปุ๋ยที่ขายได้ (กก.)</p>
-                    <div class="kpi-value">2,840 กก.</div>
-                </div>
-                <div class="kpi-icon bg-primary-soft"><i class="bi bi-bag-fill"></i></div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-stat shadow-sm bg-grad-red text-white h-100">
+            <div class="card-body p-4">
+                <h6 class="opacity-75 fw-bold text-uppercase small">สินค้าที่ต้องสั่งเพิ่ม</h6>
+                <h2 class="mb-0 fw-bold">@Model.LowStockCount <span class="fs-4 fw-normal">รายการ</span></h2>
+                <div class="mt-2 small"><i class="bi bi-exclamation-circle"></i> ตรวจสอบคลังสินค้า</div>
+                <i class="bi bi-box-seam stat-icon"></i>
             </div>
         </div>
     </div>
-
 </div>
 
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 h-100" style="border-radius: 20px;">
+            <div class="card-header bg-white py-4 border-0">
+                <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-activity text-success me-2"></i> สถิติจำนวนเงินหมุนเวียน (7 วันล่าสุด)</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100" style="border-radius: 20px;">
+            <div class="card-header bg-white py-4 border-0">
+                <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-fire text-orange me-2"></i> สินค้าขายดี (Top 5)</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle table-custom">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">สินค้า</th>
+                                <th class="text-center">ยอดขาย</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.TopProducts.Any()) {
+                                int rank = 1;
+                                foreach (var item in Model.TopProducts) {
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rank-badge rounded-circle me-3 @(rank == 1 ? "bg-warning text-dark" : "bg-light text-muted border")">@rank</div>
+                                                <span class="fw-bold text-dark text-truncate" style="max-width: 140px;">@item.ProductName</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center fw-bold text-success">@item.TotalQty <small class="text-muted fw-normal">ชิ้น</small></td>
+                                    </tr>
+                                    rank++;
+                                }
+                            } else {
+                                <tr><td colspan="2" class="text-center py-5 text-muted small">ไม่มีข้อมูลการขาย</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+<div class="row g-4 mt-2 mb-5">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 border-top border-danger border-4 h-100" style="border-radius: 0 0 20px 20px;">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold text-danger"><i class="bi bi-shield-fill-exclamation me-1"></i> สินค้าที่สต็อกใกล้หมด</h6>
+                <a href="@Url.Action("Products", "Owner")" class="btn btn-sm btn-light rounded-pill px-3">ดูคลังสินค้า</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0 align-middle table-custom">
+                    <tbody>
+                        @if (Model.LowStockProductsList.Any()) {
+                            foreach (var item in Model.LowStockProductsList) {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold">@item.Name</div>
+                                        <code class="small text-muted">@item.Sku</code>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="badge @(item.StockQuantity == 0 ? "bg-dark" : "bg-danger") px-3 rounded-pill shadow-sm">
+                                            @item.StockQuantity
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        } else {
+                            <tr><td colspan="2" class="text-center py-4 text-success"><i class="bi bi-check-circle"></i> สินค้าทุกรายการมีพอเพียง</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 border-top border-success border-4 h-100" style="border-radius: 0 0 20px 20px;">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="mb-0 fw-bold text-success"><i class="bi bi-people-fill me-1"></i> พนักงานดีเด่น (Performance)</h6>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0 align-middle table-custom">
+                    <thead class="table-light">
+                        <tr class="small">
+                            <th class="ps-4">พนักงาน</th>
+                            <th class="text-center">บิล</th>
+                            <th class="text-end pe-4">ยอดรวม</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.TopEmployees.Any()) {
+                            int empRank = 1;
+                            foreach (var emp in Model.TopEmployees) {
+                                <tr>
+                                    <td class="ps-4">
+                                        <span class="fw-bold text-dark">@emp.EmployeeName</span>
+                                    </td>
+                                    <td class="text-center fw-bold">@emp.TotalBills</td>
+                                    <td class="text-end pe-4 text-success fw-bold">฿@emp.TotalSales.ToString("N0")</td>
+                                </tr>
+                                empRank++;
+                            }
+                        } else {
+                            <tr><td colspan="3" class="text-center py-4 text-muted">ไม่มีข้อมูล</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const labels = @Html.Raw(ViewBag.ChartLabels);
+    const dataValues = @Html.Raw(ViewBag.ChartValues);
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    
+    // สร้าง Gradient สำหรับเส้นกราฟ
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(29, 151, 108, 0.4)');
+    gradient.addColorStop(1, 'rgba(29, 151, 108, 0.0)');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: dataValues,
+                borderColor: '#1d976c',
+                backgroundColor: gradient,
+                borderWidth: 4,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#1d976c',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    titleFont: { family: 'Sarabun' },
+                    bodyFont: { family: 'Sarabun' },
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            return 'ยอดขาย: ฿' + context.raw.toLocaleString();
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: { 
+                    beginAtZero: true, 
+                    grid: { color: '#f1f5f9' },
+                    ticks: { font: { family: 'Sarabun' } }
+                },
+                x: { 
+                    grid: { display: false },
+                    ticks: { font: { family: 'Sarabun' } }
+                }
+            }
+        }
+    });
+</script>

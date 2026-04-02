@@ -1,0 +1,86 @@
+@model FertilizerShop.Models.Purchaseorder
+@{
+    ViewData["Title"] = "รายละเอียดใบสั่งซื้อ";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var details = ViewBag.PODetails as IEnumerable<FertilizerShop.Models.Purchaseorderdetail>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="@Url.Action("POHistory", "Manager")">ประวัติใบสั่งซื้อ</a></li>
+        <li class="breadcrumb-item active">PO-@Model.PoId.ToString("D4")</li>
+      </ol>
+    </nav>
+    <a href="@Url.Action("POHistory", "Manager")" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> กลับ</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-sm-6">
+                <h5 class="fw-bold text-primary">ใบสั่งซื้อ: PO-@Model.PoId.ToString("D4")</h5>
+                <p class="mb-1"><strong>ผู้จัดจำหน่าย:</strong> @Model.Supplier?.Name</p>
+                <p class="mb-1"><strong>วันที่สั่ง:</strong> @Model.OrderDate.Value.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+            <div class="col-sm-6 text-sm-end">
+                <p class="mb-2"><strong>สถานะปัจจุบัน:</strong></p>
+                @if (Model.Status == "Pending")
+                {
+                    <span class="badge bg-warning text-dark fs-6 p-2"><i class="bi bi-hourglass-split"></i> รอรับสินค้า</span>
+                    
+                    <form asp-action="MarkPOAsReceived" method="post" class="mt-3">
+                        <input type="hidden" name="id" value="@Model.PoId" />
+                        <button type="submit" class="btn btn-success fw-bold shadow-sm" onclick="return confirm('ตรวจสอบสินค้าครบถ้วน และต้องการบวกจำนวนเข้าสต็อกใช่หรือไม่?');">
+                            <i class="bi bi-box-arrow-in-down"></i> ยืนยันรับสินค้าเข้าสต็อก
+                        </button>
+                    </form>
+                }
+                else if (Model.Status == "Received")
+                {
+                    <span class="badge bg-success fs-6 p-2"><i class="bi bi-check2-all"></i> รับสินค้าเข้าสต็อกแล้ว</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <table class="table table-bordered mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>สินค้า</th>
+                    <th class="text-center">จำนวนสั่งซื้อ</th>
+                    <th class="text-end">ต้นทุน/หน่วย (฿)</th>
+                    <th class="text-end">รวม (฿)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in details)
+                {
+                    <tr>
+                        <td>@d.Product?.Name</td>
+                        <td class="text-center fw-bold">@d.Quantity</td>
+                        <td class="text-end">@d.UnitCost.ToString("N2")</td>
+                        <td class="text-end fw-bold text-danger">@d.SubTotal.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="3" class="text-end">ยอดรวมทั้งสิ้น</th>
+                    <th class="text-end fs-5 text-danger">฿ @Model.TotalAmount.ToString("N2")</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
