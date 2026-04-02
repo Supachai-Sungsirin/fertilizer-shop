@@ -28,7 +28,13 @@ public partial class FertilizershopdbContext : DbContext
 
     public virtual DbSet<Promotion> Promotions { get; set; }
 
+    public virtual DbSet<Purchaseorder> Purchaseorders { get; set; }
+
+    public virtual DbSet<Purchaseorderdetail> Purchaseorderdetails { get; set; }
+
     public virtual DbSet<Role> Roles { get; set; }
+
+    public virtual DbSet<Supplier> Suppliers { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -175,6 +181,50 @@ public partial class FertilizershopdbContext : DbContext
             entity.Property(e => e.RewardValue).HasPrecision(10, 2);
         });
 
+        modelBuilder.Entity<Purchaseorder>(entity =>
+        {
+            entity.HasKey(e => e.PoId).HasName("PRIMARY");
+
+            entity.ToTable("purchaseorders");
+
+            entity.Property(e => e.PoId).HasColumnName("PO_ID");
+            entity.Property(e => e.ManagerId).HasColumnName("ManagerID");
+            entity.Property(e => e.OrderDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasDefaultValueSql("'Pending'");
+            entity.Property(e => e.SupplierId).HasColumnName("SupplierID");
+            entity.Property(e => e.TotalAmount).HasPrecision(10, 2);
+            entity.HasOne(d => d.Supplier)
+              .WithMany()
+              .HasForeignKey(d => d.SupplierId)
+              .HasConstraintName("FK_Purchaseorder_Supplier");
+        });  
+
+        modelBuilder.Entity<Purchaseorderdetail>(entity =>
+        {
+            entity.HasKey(e => e.PodetailId).HasName("PRIMARY");
+
+            entity.ToTable("purchaseorderdetails");
+
+            entity.Property(e => e.PodetailId).HasColumnName("PODetailID");
+            entity.Property(e => e.PoId).HasColumnName("PO_ID");
+            entity.Property(e => e.ProductId).HasColumnName("ProductID");
+            entity.Property(e => e.SubTotal).HasPrecision(10, 2);
+            entity.Property(e => e.UnitCost).HasPrecision(10, 2);
+            entity.HasOne(d => d.Product)
+              .WithMany()
+              .HasForeignKey(d => d.ProductId)
+              .HasConstraintName("FK_Purchaseorderdetail_Product");
+
+            entity.HasOne(d => d.Po)
+              .WithMany()
+              .HasForeignKey(d => d.PoId)
+              .HasConstraintName("FK_Purchaseorderdetail_PO");
+        });
+
         modelBuilder.Entity<Role>(entity =>
         {
             entity.HasKey(e => e.RoleId).HasName("PRIMARY");
@@ -183,6 +233,19 @@ public partial class FertilizershopdbContext : DbContext
 
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
             entity.Property(e => e.RoleName).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<Supplier>(entity =>
+        {
+            entity.HasKey(e => e.SupplierId).HasName("PRIMARY");
+
+            entity.ToTable("suppliers");
+
+            entity.Property(e => e.SupplierId).HasColumnName("SupplierID");
+            entity.Property(e => e.Address).HasColumnType("text");
+            entity.Property(e => e.ContactName).HasMaxLength(100);
+            entity.Property(e => e.Name).HasMaxLength(150);
+            entity.Property(e => e.Phone).HasMaxLength(20);
         });
 
         modelBuilder.Entity<User>(entity =>

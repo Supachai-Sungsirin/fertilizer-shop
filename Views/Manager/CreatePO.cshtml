@@ -1,0 +1,198 @@
+@{
+    ViewData["Title"] = "สร้างใบสั่งซื้อ (PO)";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-earmark-plus"></i> สร้างใบสั่งซื้อสินค้า (PO)</h2>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-header bg-white py-3 fw-bold text-primary">
+                1. เลือกผู้จัดจำหน่าย (Supplier)
+            </div>
+            <div class="card-body">
+                <select id="supplier-id" class="form-select" asp-items="ViewBag.Suppliers">
+                    <option value="">-- เลือกบริษัท/โรงงาน --</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 fw-bold text-success">
+                2. เพิ่มสินค้าลงในบิล
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">เลือกสินค้า</label>
+                    <select id="product-select" class="form-select">
+                        <option value="">-- ค้นหาสินค้า --</option>
+                        @foreach (var p in ViewBag.ProductsList)
+                        {
+                            <option value="@p.id" data-name="@p.name">[@p.sku] @p.name</option>
+                        }
+                    </select>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-bold">จำนวน</label>
+                        <input type="number" id="qty-input" class="form-control" min="1" value="1">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-bold">ต้นทุน/ชิ้น (฿)</label>
+                        <input type="number" id="cost-input" class="form-control" min="0" step="0.01">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-outline-success w-100 fw-bold" onclick="addItem()">
+                    <i class="bi bi-plus-lg"></i> เพิ่มลงรายการ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-list-ul"></i> รายการสินค้าที่ต้องการสั่ง</span>
+                <span class="badge bg-secondary" id="item-count">0 รายการ</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>สินค้า</th>
+                            <th class="text-center">จำนวน</th>
+                            <th class="text-end">ต้นทุน/หน่วย</th>
+                            <th class="text-end">รวม (฿)</th>
+                            <th class="text-center">ลบ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="po-items-table">
+                        <tr><td colspan="5" class="text-center py-5 text-muted">ยังไม่ได้เลือกสินค้า</td></tr>
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td colspan="3" class="text-end">ยอดรวมทั้งสิ้น:</td>
+                            <td class="text-end text-danger fs-5" id="po-total">0.00</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="card-footer bg-white p-3">
+                <button class="btn btn-primary w-100 py-2 fs-5 fw-bold" onclick="savePO()" id="btn-save">
+                    <i class="bi bi-save"></i> บันทึกใบสั่งซื้อ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let poItems = [];
+
+    function addItem() {
+        let pSelect = document.getElementById('product-select');
+        let qty = parseInt(document.getElementById('qty-input').value);
+        let cost = parseFloat(document.getElementById('cost-input').value);
+        
+        if (!pSelect.value) { alert('กรุณาเลือกสินค้า'); return; }
+        if (isNaN(qty) || qty <= 0) { alert('กรุณาระบุจำนวนให้ถูกต้อง'); return; }
+        if (isNaN(cost) || cost < 0) { alert('กรุณาระบุต้นทุนให้ถูกต้อง'); return; }
+
+        let pId = parseInt(pSelect.value);
+        let pName = pSelect.options[pSelect.selectedIndex].getAttribute('data-name');
+
+        // เช็คว่ามีในลิสต์แล้วหรือยัง
+        let existing = poItems.find(i => i.ProductId === pId);
+        if (existing) {
+            existing.Qty += qty;
+            existing.UnitCost = cost; // อัปเดตราคาล่าสุด
+        } else {
+            poItems.push({ ProductId: pId, Name: pName, Qty: qty, UnitCost: cost });
+        }
+        
+        renderTable();
+        // เคลียร์ช่อง
+        document.getElementById('qty-input').value = 1;
+        document.getElementById('cost-input').value = "";
+        pSelect.value = "";
+    }
+
+    function removeItem(index) {
+        poItems.splice(index, 1);
+        renderTable();
+    }
+
+    function renderTable() {
+        let tbody = document.getElementById('po-items-table');
+        let totalEl = document.getElementById('po-total');
+        let countEl = document.getElementById('item-count');
+
+        if (poItems.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted">ยังไม่ได้เลือกสินค้า</td></tr>';
+            totalEl.innerText = "0.00";
+            countEl.innerText = "0 รายการ";
+            return;
+        }
+
+        let html = '';
+        let total = 0;
+
+        poItems.forEach((item, index) => {
+            let sub = item.Qty * item.UnitCost;
+            total += sub;
+            html += `
+                <tr>
+                    <td>${item.Name}</td>
+                    <td class="text-center">${item.Qty}</td>
+                    <td class="text-end">${item.UnitCost.toFixed(2)}</td>
+                    <td class="text-end fw-bold">${sub.toFixed(2)}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeItem(${index})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+        totalEl.innerText = total.toLocaleString('en-US', {minimumFractionDigits: 2});
+        countEl.innerText = poItems.length + " รายการ";
+    }
+
+    function savePO() {
+        let supplierId = document.getElementById('supplier-id').value;
+        if (!supplierId) { alert('กรุณาเลือกผู้จัดจำหน่าย (Supplier)'); return; }
+        if (poItems.length === 0) { alert('กรุณาเพิ่มสินค้าลงในบิลอย่างน้อย 1 รายการ'); return; }
+
+        if (confirm('ยืนยันการสร้างใบสั่งซื้อ?')) {
+            let btn = document.getElementById('btn-save');
+            btn.disabled = true;
+            btn.innerHTML = 'กำลังบันทึก...';
+
+            let payload = {
+                SupplierId: parseInt(supplierId),
+                Items: poItems
+            };
+
+            fetch('/Manager/CreatePO', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('สร้างใบสั่งซื้อสำเร็จ! เลขที่ใบสั่งซื้อ: PO-' + data.poId);
+                    window.location.href = '/Manager/POHistory'; // เปลี่ยนให้เด้งไปหน้าประวัติเลย
+                } else {
+                    alert('Error: ' + data.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-save"></i> บันทึกใบสั่งซื้อ';
+                }
+            });
+        }
+    }
+</script>
