@@ -10,129 +10,148 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <style>
-            :root {
-                --sidebar-bg: #1a2a23;
-                /* เขียวเข้มจัด */
-                --sidebar-hover: #2d443a;
-                --sidebar-active: #1d976c;
-                /* เขียวสว่าง */
-                --text-muted: #94a3b8;
-            }
+        :root {
+            --sidebar-bg: #1a2a23;
+            --sidebar-hover: #2d443a;
+            --sidebar-active: #1d976c;
+            --text-muted: #94a3b8;
+        }
 
-            body {
-                font-family: 'Sarabun', sans-serif;
-                background-color: #f8fafc;
-                overflow-x: hidden;
-            }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+        }
 
-            /* Sidebar Styling */
-            .sidebar {
-                min-height: 100vh;
-                width: 280px;
-                background-color: var(--sidebar-bg);
-                color: white;
-                position: fixed;
-                display: flex;
-                flex-direction: column;
-                transition: all 0.3s;
-                box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
-                z-index: 1000;
-            }
+        /* Sidebar Styling */
+        .sidebar {
+            width: 280px;
+            height: 100vh; /* บังคับความสูงเท่าหน้าจอ */
+            background-color: var(--sidebar-bg);
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
 
-            .sidebar-header {
-                padding: 25px 20px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            }
+        .sidebar-header {
+            padding: 25px 20px;
+            flex-shrink: 0; /* หัวข้อจะไม่ถูกบีบ */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
 
-            .brand-logo {
-                font-size: 1.25rem;
-                font-weight: 700;
-                color: #fff;
-                text-decoration: none;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
+        /* ส่วนที่ทำให้เลื่อนได้ */
+        .sidebar-content {
+            flex-grow: 1;
+            overflow-y: auto; /* เปิดให้เลื่อนในแนวตั้ง */
+            scrollbar-width: thin; /* สำหรับ Firefox */
+            scrollbar-color: var(--sidebar-hover) transparent;
+        }
 
-            .user-profile-sm {
-                padding: 20px;
-                background: rgba(255, 255, 255, 0.03);
-                margin: 15px;
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-            }
+        /* ปรับแต่ง Scrollbar สำหรับ Chrome/Safari */
+        .sidebar-content::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background-color: var(--sidebar-hover);
+            border-radius: 10px;
+        }
 
-            /* Nav Links */
-            .nav-link-custom {
-                color: var(--text-muted);
-                padding: 12px 20px;
-                margin: 4px 15px;
-                border-radius: 10px;
-                display: flex;
-                align-items: center;
-                text-decoration: none;
-                transition: all 0.2s;
-                font-weight: 400;
-            }
+        .brand-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-            .nav-link-custom i {
-                font-size: 1.2rem;
-                margin-right: 12px;
-            }
+        .user-profile-sm {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            margin: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
 
-            .nav-link-custom:hover {
-                background-color: var(--sidebar-hover);
-                color: white;
-                padding-left: 25px;
-            }
+        .nav-link-custom {
+            color: var(--text-muted);
+            padding: 12px 20px;
+            margin: 4px 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-weight: 400;
+        }
 
-            .nav-link-custom.active {
-                background: linear-gradient(45deg, #1d976c, #93f9b9);
-                color: white;
-                font-weight: 600;
-                box-shadow: 0 4px 12px rgba(29, 151, 108, 0.3);
-            }
+        .nav-link-custom i {
+            font-size: 1.2rem;
+            margin-right: 12px;
+        }
 
-            .nav-label {
-                font-size: 0.75rem;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                color: #475569;
-                margin: 20px 25px 10px;
-                font-weight: 700;
-            }
+        .nav-link-custom:hover {
+            background-color: var(--sidebar-hover);
+            color: white;
+            padding-left: 25px;
+        }
 
-            /* Content Wrapper */
-            .content-wrapper {
-                margin-left: 280px;
-                padding: 0;
-                width: calc(100% - 280px);
-                min-height: 100vh;
-            }
+        .nav-link-custom.active {
+            background: linear-gradient(45deg, #1d976c, #93f9b9);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(29, 151, 108, 0.3);
+        }
 
-            .top-navbar {
-                background: white;
-                padding: 15px 30px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
+        .nav-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #52796f; /* ปรับสีให้อ่อนลงเพื่อให้ดูง่าย */
+            margin: 20px 25px 10px;
+            font-weight: 700;
+        }
 
-            .main-body {
-                padding: 30px;
-            }
+        .content-wrapper {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            min-height: 100vh;
+        }
 
-            .logout-link {
-                margin-top: auto;
-                color: #f87171 !important;
-            }
+        .top-navbar {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
 
-            .logout-link:hover {
-                background-color: rgba(248, 113, 113, 0.1);
-            }
+        .main-body {
+            padding: 30px;
+        }
+
+        .logout-section {
+            padding: 10px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        .logout-link {
+            color: #f87171 !important;
+        }
     </style>
 </head>
 
@@ -146,70 +165,75 @@
                 </a>
             </div>
 
-            <div class="user-profile-sm">
-                <div class="avatar shadow-sm d-flex align-items-center justify-content-center bg-success text-white rounded-circle"
-                     style="width: 40px; height: 40px;">
-                    <i class="bi bi-person-fill"></i>
+            <!-- ส่วนเนื้อหาเมนูที่เลื่อนได้ -->
+            <div class="sidebar-content">
+                <div class="user-profile-sm">
+                    <div class="avatar shadow-sm d-flex align-items-center justify-content-center bg-success text-white rounded-circle"
+                         style="width: 35px; height: 35px;">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="mb-0 fw-bold small text-white text-truncate">@User.Identity.Name</p>
+                    </div>
                 </div>
-                <div class="overflow-hidden">
-                    <p class="mb-0 fw-bold small text-white">@User.Identity.Name</p>
-                    @* <p class="mb-0 text-muted" style="font-size: 0.7rem; ">ผู้ใช้งานระบบ</p> *@
+
+                <div class="nav flex-column">
+                    @if (User.IsInRole("Owner"))
+                    {
+                        <div class="nav-label">เจ้าของร้าน</div>
+                        <a href="@Url.Action("Dashboard", "Owner")"
+                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Dashboard" ? "active" : "")">
+                            <i class="bi bi-grid-1x2-fill"></i> แดชบอร์ด
+                        </a>
+                        <a href="@Url.Action("Reports", "Owner")"
+                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Reports" ? "active" : "")">
+                            <i class="bi bi-file-earmark-bar-graph-fill"></i> ศูนย์รวมรายงาน
+                        </a>
+                        <a href="@Url.Action("Employees", "Owner")"
+                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Employees" || ViewContext.RouteData.Values["Action"].ToString() == "AddEmployee" ? "active" : "")">
+                            <i class="bi bi-people-fill"></i> จัดการพนักงาน
+                        </a>
+                    }
+
+                    @if (User.IsInRole("Manager") || User.IsInRole("Owner"))
+                    {
+                        <div class="nav-label">การจัดการ</div>
+                        <a href="@Url.Action("Index", "Manager")"
+                           class="nav-link-custom @(ViewContext.RouteData.Values["Controller"].ToString() == "Manager" && ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "active" : "")">
+                            <i class="bi bi-speedometer"></i> แดชบอร์ดผู้จัดการ
+                        </a>
+                        <a href="@Url.Action("Products", "Owner")"
+                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Products" ? "active" : "")">
+                            <i class="bi bi-box-seam-fill"></i> สต็อกสินค้า
+                        </a>
+                        <a href="@Url.Action("Categories", "Owner")"
+                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Categories" ? "active" : "")">
+                            <i class="bi bi-tags-fill"></i> หมวดหมู่สินค้า
+                        </a>
+                        <a href="@Url.Action("POHistory", "Manager")"
+                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "POHistory" || ViewContext.RouteData.Values["Action"].ToString() == "CreatePO" || ViewContext.RouteData.Values["Action"].ToString() == "PODetails" ? "active" : "")">
+                            <i class="bi bi-journal-text"></i> ระบบสั่งซื้อสินค้า (PO)
+                        </a>
+                        <a href="@Url.Action("Promotions", "Manager")"
+                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Promotions" || ViewContext.RouteData.Values["Action"].ToString() == "AddPromotion" ? "active" : "")">
+                            <i class="bi bi-megaphone"></i> จัดการโปรโมชั่น
+                        </a>
+                        <a href="@Url.Action("SalesHistory", "Manager")"
+                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "SalesHistory" ? "active" : "")">
+                            <i class="bi bi-clock-history"></i> ประวัติการขาย
+                        </a>
+                    }
+
+                    <div class="nav-label">งานขาย</div>
+                    <a href="@Url.Action("Index", "Cashier")" class="nav-link-custom" target="_blank">
+                        <i class="bi bi-pc-display-horizontal"></i> ระบบขาย POS
+                    </a>
                 </div>
             </div>
-            
-            <div class="nav flex-column flex-grow-1">
-                @if (User.IsInRole("Owner"))
-                {
-                    <div class="nav-label">เจ้าของร้าน</div>
-                    <a href="@Url.Action("Dashboard", "Owner")"
-                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Dashboard" ? "active" : "")">
-                        <i class="bi bi-grid-1x2-fill"></i> แดชบอร์ด
-                    </a>
-                    <a href="@Url.Action("Reports", "Owner")"
-                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Reports" ? "active" : "")">
-                        <i class="bi bi-file-earmark-bar-graph-fill"></i> ศูนย์รวมรายงาน
-                    </a>
-                    <a href="@Url.Action("Employees", "Owner")"
-                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Employees" || ViewContext.RouteData.Values["Action"].ToString() == "AddEmployee" ? "active" : "")">
-                        <i class="bi bi-people-fill"></i> จัดการพนักงาน
-                    </a>
-                }
 
-                @if (User.IsInRole("Manager") || User.IsInRole("Owner"))
-                {
-                    <div class="nav-label">การจัดการ</div>
-                    <a href="@Url.Action("Index", "Manager")"
-                           class="nav-link-custom @(ViewContext.RouteData.Values["Controller"].ToString() == "Manager" && ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "active" : "")">
-                        <i class="bi bi-speedometer"></i> แดชบอร์ดผู้จัดการ
-                    </a>
-                    <a href="@Url.Action("Products", "Owner")"
-                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Products" ? "active" : "")">
-                        <i class="bi bi-box-seam-fill"></i> สต็อกสินค้า
-                    </a>
-                    <a href="@Url.Action("Categories", "Owner")"
-                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Categories" ? "active" : "")">
-                        <i class="bi bi-tags-fill"></i> หมวดหมู่สินค้า
-                    </a>
-                    <a href="@Url.Action("POHistory", "Manager")"
-                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "POHistory" || ViewContext.RouteData.Values["Action"].ToString() == "CreatePO" || ViewContext.RouteData.Values["Action"].ToString() == "PODetails" ? "active" : "")">
-                        <i class="bi bi-journal-text me-2"></i> ระบบสั่งซื้อสินค้า (PO)
-                    </a>
-                    <a href="@Url.Action("Promotions", "Manager")"
-                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "Promotions" || ViewContext.RouteData.Values["Action"].ToString() == "AddPromotion" ? "active" : "")">
-                        <i class="bi bi-megaphone me-2"></i> จัดการโปรโมชั่น
-                    </a>
-                    <a href="@Url.Action("SalesHistory", "Manager")"
-                           class="nav-link-custom @(ViewContext.RouteData.Values["Action"].ToString() == "SalesHistory" ? "active" : "")">
-                        <i class="bi bi-clock-history me-2"></i> ประวัติการขาย
-                    </a>
-                }
-
-                <div class="nav-label">งานขาย</div>
-                <a href="@Url.Action("Index", "Cashier")" class="nav-link-custom" target="_blank">
-                    <i class="bi bi-pc-display-horizontal"></i> ระบบขาย POS
-                </a>
-
-                <a href="@Url.Action("Logout", "Account")" class="nav-link-custom logout-link mt-auto mb-3">
+            <!-- ส่วนปุ่มออกจากระบบที่อยู่ติดด้านล่างเสมอ -->
+            <div class="logout-section">
+                <a href="@Url.Action("Logout", "Account")" class="nav-link-custom logout-link">
                     <i class="bi bi-box-arrow-right"></i> ออกจากระบบ
                 </a>
             </div>
@@ -224,11 +248,9 @@
                     </ol>
                 </nav>
                 <div class="d-flex align-items-center">
-                    <div class="dropdown">
-                        <div class="text-dark small fw-600" style="cursor: pointer;">
-                            <i class="bi bi-circle-fill text-success me-1" style="font-size: 0.5rem;"></i>
-                            สถานะ: ออนไลน์
-                        </div>
+                    <div class="text-dark small fw-600">
+                        <i class="bi bi-circle-fill text-success me-1" style="font-size: 0.5rem;"></i>
+                        สถานะ: ออนไลน์
                     </div>
                 </div>
             </div>

@@ -10,6 +10,7 @@
     <meta charset="utf-8" />
     <title>ใบเสร็จ - @Model.ReceiptNo</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         body { background-color: #f8f9fa; padding: 20px; }
         .receipt-container { background: white; max-width: 400px; margin: auto; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -21,76 +22,89 @@
         }
     </style>
 </head>
-<body>
+    <body>
 
-    <div class="receipt-container text-dark">
-        <h3 class="text-center fw-bold">Fertilizer Shop</h3>
-        <p class="text-center text-muted mb-1">ใบเสร็จรับเงิน / ใบกำกับภาษีอย่างย่อ</p>
-        
-        <div class="dashed-line"></div>
-        <div class="d-flex justify-content-between small">
-            <span>เลขที่บิล: @Model.ReceiptNo</span>
-            <span>@Model.OrderDate.Value.ToString("dd/MM/yyyy HH:mm")</span>
-        </div>
-        <div class="d-flex justify-content-between small">
-            <span>แคชเชียร์: ID @Model.CashierId</span>
-            <span>วิธีชำระ: @Model.PaymentMethod</span>
-        </div>
-        <div class="dashed-line"></div>
-
-        <table class="table table-sm table-borderless mb-0 small">
-            <thead>
-                <tr>
-                    <th width="50%">รายการ</th>
-                    <th width="20%" class="text-center">จำนวน</th>
-                    <th width="30%" class="text-end">รวม</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach(var item in ViewBag.OrderDetails)
-                {
-                    <tr>
-                        <td class="text-truncate" style="max-width: 150px;">@item.ProductName</td>
-                        <td class="text-center">@item.Qty</td>
-                        <td class="text-end">@item.SubTotal.ToString("N2")</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-
-        <div class="dashed-line"></div>
-        
-        <div class="d-flex justify-content-between">
-            <span>ยอดรวม:</span>
-            <span>฿ @Model.TotalAmount.ToString("N2")</span>
-        </div>
-        @if(Model.DiscountAmount > 0)
-        {
-            <div class="d-flex justify-content-between text-danger">
-                <span>ส่วนลดโปรโมชั่น:</span>
-                <span>- ฿ @Model.DiscountAmount.Value.ToString("N2")</span>
+        <div class="receipt-container text-dark">
+            <h3 class="text-center fw-bold">ชาติชายฟาร์ม</h3>
+            <p class="text-center text-muted mb-1">ใบเสร็จรับเงิน / ใบกำกับภาษีอย่างย่อ</p>
+            
+            <div class="dashed-line"></div>
+            <div class="d-flex justify-content-between small">
+                <span>เลขที่บิล: @Model.ReceiptNo</span>
+                <span>@Model.OrderDate.Value.ToString("dd/MM/yyyy HH:mm")</span>
             </div>
-        }
-        <div class="d-flex justify-content-between fw-bold fs-5 mt-2">
-            <span>ยอดสุทธิ:</span>
-            <span>฿ @Model.NetAmount.ToString("N2")</span>
+            <div class="d-flex justify-content-between small">
+                <span>แคชเชียร์: ID @Model.CashierId</span>
+                <span>วิธีชำระ: 
+                    @(Model.PaymentMethod == "Cash" ? "เงินสด" : 
+                    Model.PaymentMethod == "Transfer" ? "โอนเงิน" : "บัตรเครดิต")
+                </span>
+            </div>
+            <div class="dashed-line"></div>
+
+            <table class="table table-sm table-borderless mb-0 small">
+                <thead>
+                    <tr>
+                        <th width="50%">รายการ</th>
+                        <th width="20%" class="text-center">จำนวน</th>
+                        <th width="30%" class="text-end">รวม</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(var item in ViewBag.OrderDetails)
+                    {
+                        <tr>
+                            <td class="text-truncate" style="max-width: 150px;">@item.ProductName</td>
+                            <td class="text-center">@item.Qty</td>
+                            <td class="text-end">@item.SubTotal.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="dashed-line"></div>
+            
+            <div class="d-flex justify-content-between">
+                <span>ยอดรวม:</span>
+                <span>฿ @Model.TotalAmount.ToString("N2")</span>
+            </div>
+            @if(Model.DiscountAmount > 0)
+            {
+                <div class="d-flex justify-content-between text-danger">
+                    <span>ส่วนลดโปรโมชั่น:</span>
+                    <span>- ฿ @Model.DiscountAmount.Value.ToString("N2")</span>
+                </div>
+            }
+            <div class="d-flex justify-content-between fw-bold fs-5 mt-2">
+                <span>ยอดสุทธิ:</span>
+                <span>฿ @Model.NetAmount.ToString("N2")</span>
+            </div>
+
+            <div class="dashed-line"></div>
+
+            @if(Model.Customer != null)
+            {
+                <div class="text-center mt-3 mb-2 small bg-light p-2 rounded border border-success">
+                    <p class="mb-1 fw-bold text-success"><i class="bi bi-person-badge"></i> สมาชิก: @Model.Customer.FullName</p>
+                    <p class="mb-0">แต้มสะสมปัจจุบัน: <span class="fs-6 fw-bold text-dark">@(Model.Customer.RewardPoints ?? 0)</span> แต้ม</p>
+                </div>
+                <div class="dashed-line"></div>
+            }
+
+            <div class="text-center small mt-3">
+                <p class="mb-0">ขอบคุณที่ใช้บริการครับ/ค่ะ</p>
+                <p>สินค้าซื้อแล้วไม่รับเปลี่ยนคืนในทุกกรณี</p>
+            </div>
+
+            <div class="text-center mt-4 no-print">
+                <button class="btn btn-primary w-100 mb-2 fw-bold" onclick="window.print()">
+                    <i class="bi bi-printer"></i> พิมพ์ใบเสร็จ (Print)
+                </button>
+                <a href="@Url.Action("Index", "Cashier")" class="btn btn-outline-secondary w-100 fw-bold">
+                    <i class="bi bi-arrow-left-circle"></i> กลับไปหน้าขายสินค้า
+                </a>
+            </div>
         </div>
 
-        <div class="dashed-line"></div>
-        <div class="text-center small mt-3">
-            <p class="mb-0">ขอบคุณที่ใช้บริการครับ/ค่ะ</p>
-            <p>สินค้าซื้อแล้วไม่รับเปลี่ยนคืนในทุกกรณี</p>
-        </div>
-
-        <div class="text-center mt-4 no-print">
-            <button class="btn btn-primary w-100 mb-2" onclick="window.print()">
-                🖨️ พิมพ์ใบเสร็จ (Print)
-            </button>
-            <a href="@Url.Action("Index", "Cashier")" class="btn btn-outline-secondary w-100">
-                กลับไปหน้าขายสินค้า
-            </a>
-        </div>
-    </div>
-
-</body>
+    </body>
 </html>

@@ -5,50 +5,164 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div asp-validation-summary="All" class="text-danger"></div>
+<style>
+    .form-card {
+        border-radius: 20px;
+        background-color: #ffffff;
+    }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-person-plus"></i> เพิ่มพนักงานใหม่</h2>
-    <a href="@Url.Action("Employees", "Owner")" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> กลับหน้ารายชื่อ</a>
+    .section-title {
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #1d976c;
+        border-bottom: 2px solid #f1f5f9;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-size: 0.9rem;
+        color: #475569;
+        margin-bottom: 8px;
+    }
+
+    .form-control, .form-select {
+        border-radius: 12px;
+        padding: 12px 15px;
+        border: 1px solid #cbd5e1;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #1d976c;
+        box-shadow: 0 0 0 4px rgba(29, 151, 108, 0.1);
+    }
+
+    .input-group-text-custom {
+        background-color: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-right: none;
+        border-radius: 12px 0 0 12px;
+        color: #64748b;
+    }
+
+    .has-icon .form-control {
+        border-radius: 0 12px 12px 0;
+    }
+
+    .btn-action {
+        border-radius: 12px;
+        padding: 12px 25px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-save {
+        background: linear-gradient(45deg, #1d976c, #167a57);
+        border: none;
+        color: white;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(29, 151, 108, 0.3);
+        color: white;
+    }
+
+    .validation-summary {
+        border-radius: 12px;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-person-plus-fill text-success me-2"></i> เพิ่มพนักงานใหม่</h2>
+        <p class="text-muted small mb-0">สร้างบัญชีผู้ใช้งานใหม่สำหรับพนักงานในระบบร้านชาติชายฟาร์ม</p>
+    </div>
+    <a href="@Url.Action("Employees", "Owner")" class="btn btn-outline-secondary px-4 shadow-sm" style="border-radius: 10px;">
+        <i class="bi bi-arrow-left me-1"></i> กลับหน้ารายชื่อ
+    </a>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body p-4">
-        <form asp-action="AddEmployee" method="post">
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">รหัสพนักงาน (ใช้สำหรับ Login)</label>
-                    <input type="text" asp-for="EmployeeId" class="form-control" required />
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">รหัสผ่าน</label>
-                    <input type="password" asp-for="PasswordHash" class="form-control" required />
-                </div>
-            </div>
+@if (!ViewData.ModelState.IsValid)
+{
+    <div asp-validation-summary="All" class="alert alert-danger validation-summary shadow-sm mb-4 border-0">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>กรุณาตรวจสอบข้อมูล:</strong>
+    </div>
+}
 
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">ชื่อ</label>
-                    <input type="text" asp-for="FirstName" class="form-control" required />
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">นามสกุล</label>
-                    <input type="text" asp-for="LastName" class="form-control" required />
-                </div>
-            </div>
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+        <div class="card form-card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                <form asp-action="AddEmployee" method="post">
+                    
+                    <!-- ส่วนที่ 1: ข้อมูลการเข้าสู่ระบบ -->
+                    <div class="section-title fw-bold">
+                        <i class="bi bi-shield-lock-fill me-2"></i> ข้อมูลการเข้าสู่ระบบ (Login Credentials)
+                    </div>
+                    
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-6">
+                            <label asp-for="EmployeeId" class="form-label fw-bold">รหัสพนักงาน</label>
+                            <div class="input-group has-icon">
+                                <span class="input-group-text input-group-text-custom"><i class="bi bi-id-card"></i></span>
+                                <input asp-for="EmployeeId" class="form-control" placeholder="ระบุรหัสพนักงาน" required />
+                            </div>
+                            <span asp-validation-for="EmployeeId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="PasswordHash" class="form-label fw-bold">รหัสผ่าน</label>
+                            <div class="input-group has-icon">
+                                <span class="input-group-text input-group-text-custom"><i class="bi bi-key-fill"></i></span>
+                                <input type="password" asp-for="PasswordHash" class="form-control" placeholder="ตั้งรหัสผ่านเบื้องต้น" required />
+                            </div>
+                            <span asp-validation-for="PasswordHash" class="text-danger small"></span>
+                        </div>
+                    </div>
 
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">ตำแหน่ง (Role)</label>
-                    <select asp-for="RoleId" asp-items="ViewBag.RoleList" class="form-select" required>
-                        <option value="">-- เลือกตำแหน่ง --</option>
-                    </select>
-                </div>
-            </div>
+                    <!-- ส่วนที่ 2: ข้อมูลส่วนตัวและตำแหน่ง -->
+                    <div class="section-title fw-bold">
+                        <i class="bi bi-person-lines-fill me-2"></i> ข้อมูลส่วนตัวและตำแหน่งงาน
+                    </div>
 
-            <hr />
-            <button type="submit" class="btn btn-success px-4"><i class="bi bi-save"></i> บันทึกข้อมูล</button>
-            <button type="reset" class="btn btn-outline-danger px-4 ms-2">ล้างค่า</button>
-        </form>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="form-label fw-bold">ชื่อจริง</label>
+                            <input asp-for="FirstName" class="form-control" placeholder="เช่น สมชาย" required />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LastName" class="form-label fw-bold">นามสกุล</label>
+                            <input asp-for="LastName" class="form-control" placeholder="เช่น รักเกษตร" required />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="RoleId" class="form-label fw-bold">ตำแหน่งงาน (Role)</label>
+                            <div class="input-group has-icon">
+                                <span class="input-group-text input-group-text-custom"><i class="bi bi-briefcase-fill"></i></span>
+                                <select asp-for="RoleId" asp-items="ViewBag.RoleList" class="form-select" required>
+                                    <option value="">-- เลือกตำแหน่ง --</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="RoleId" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-top">
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="reset" class="btn btn-light btn-action px-4 text-secondary">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> ล้างค่า
+                            </button>
+                            <button type="submit" class="btn btn-save btn-action px-5 shadow-sm">
+                                <i class="bi bi-check-circle-fill me-2"></i> ยืนยันบันทึกข้อมูล
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>

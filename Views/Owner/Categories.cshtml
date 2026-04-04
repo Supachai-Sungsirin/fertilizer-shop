@@ -4,48 +4,140 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-tags"></i> หมวดหมู่สินค้า</h2>
-    <a href="@Url.Action("AddCategory", "Owner")" class="btn btn-success"><i class="bi bi-plus-circle"></i> เพิ่มหมวดหมู่ใหม่</a>
+<style>
+    .category-table thead th {
+        background-color: #f8fafc;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        font-weight: 700;
+        color: #475569;
+        padding: 15px;
+        border: none;
+    }
+
+    .category-table tbody td {
+        padding: 18px 15px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .cat-id-badge {
+        font-family: 'Courier New', Courier, monospace;
+        background-color: #f1f5f9;
+        color: #64748b;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .category-name-text {
+        color: #1e293b;
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+
+    .btn-action-cat {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        transition: all 0.2s;
+        margin: 0 2px;
+    }
+
+    .btn-action-cat:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+        color: #94a3b8;
+    }
+</style>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-tags-fill text-success me-2"></i> จัดการหมวดหมู่สินค้า</h2>
+        <p class="text-muted small mb-0">แยกประเภทผลิตภัณฑ์เพื่อให้ง่ายต่อการจัดการและค้นหาในระบบ</p>
+    </div>
+    <a href="@Url.Action("AddCategory", "Owner")" class="btn btn-success shadow-sm px-4 py-2" style="border-radius: 12px;">
+        <i class="bi bi-plus-circle-fill me-2"></i> เพิ่มหมวดหมู่ใหม่
+    </a>
 </div>
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" style="border-radius: 15px;">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-octagon-fill fs-4 me-3"></i>
+            <div>@TempData["ErrorMessage"]</div>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 
-<div class="card shadow-sm border-0">
+<div class="card shadow-sm border-0" style="border-radius: 20px; overflow: hidden;">
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th width="15%">รหัสหมวดหมู่</th>
-                    <th>ชื่อหมวดหมู่</th>
-                    <th width="20%" class="text-center">จัดการ</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var cat in Model)
-                {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 category-table">
+                <thead>
                     <tr>
-                        <td class="fw-bold text-muted">CAT-@cat.CategoryId.ToString("D3")</td>
-                        <td class="fs-5 text-success fw-bold">@cat.CategoryName</td>
-                        <td class="text-center">
-                            <a href="@Url.Action("EditCategory", "Owner", new { id = cat.CategoryId })" class="btn btn-sm btn-outline-warning" title="แก้ไข">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                            <a href="@Url.Action("DeleteCategory", "Owner", new { id = cat.CategoryId })" 
-                               class="btn btn-sm btn-outline-danger" 
-                               onclick="return confirm('ยืนยันการลบหมวดหมู่ @cat.CategoryName ?');" title="ลบข้อมูล">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                        </td>
+                        <th width="20%" class="ps-4">รหัสอ้างอิง</th>
+                        <th>ชื่อหมวดหมู่สินค้า</th>
+                        <th width="20%" class="text-center pe-4">การจัดการ</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var cat in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="cat-id-badge">CAT-@cat.CategoryId.ToString("D3")</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-success-subtle p-2 rounded-3 me-3 text-success">
+                                            <i class="bi bi-tag-fill"></i>
+                                        </div>
+                                        <span class="category-name-text">@cat.CategoryName</span>
+                                    </div>
+                                </td>
+                                <td class="text-center pe-4">
+                                    <a href="@Url.Action("EditCategory", "Owner", new { id = cat.CategoryId })" 
+                                       class="btn btn-action-cat btn-outline-warning" title="แก้ไขชื่อหมวดหมู่">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                    <a href="@Url.Action("DeleteCategory", "Owner", new { id = cat.CategoryId })" 
+                                       class="btn btn-action-cat btn-outline-danger" 
+                                       onclick="return confirm('คุณต้องการลบหมวดหมู่ [@cat.CategoryName] ใช่หรือไม่? (ระวัง: สินค้าที่ผูกกับหมวดหมู่หนี้อาจมีผลกระทบ)');" 
+                                       title="ลบหมวดหมู่">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3">
+                                <div class="empty-state">
+                                    <i class="bi bi-folder2-open display-4 opacity-25"></i>
+                                    <p class="mt-3 fs-5">ยังไม่พบข้อมูลหมวดหมู่ในระบบ</p>
+                                    <a href="@Url.Action("AddCategory", "Owner")" class="btn btn-sm btn-success rounded-pill px-3">สร้างรายการแรก</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
