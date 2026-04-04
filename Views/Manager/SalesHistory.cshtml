@@ -4,49 +4,151 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-clock-history"></i> ประวัติการขายสินค้า</h2>
-</div>
+<style>
+    /* สไตล์หัวตารางและเนื้อหา */
+    .sales-table thead th {
+        background-color: #f8fafc;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        font-weight: 700;
+        color: #475569;
+        padding: 15px;
+        border: none;
+    }
 
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>เลขที่ใบเสร็จ</th>
-                    <th>วันที่-เวลา</th>
-                    <th>แคชเชียร์</th>
-                    <th>วิธีชำระเงิน</th>
-                    <th class="text-end">ยอดสุทธิ</th>
-                    <th class="text-center">จัดการ</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td class="fw-bold">@item.ReceiptNo</td>
-                        <td>@item.OrderDate.Value.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td>
-                            <i class="bi bi-person-badge"></i>
-                            @item.Cashier?.FirstName @item.Cashier?.LastName
-                        </td>
-                        <td>
-                            <span class="badge rounded-pill bg-info text-dark">
-                                @(item.PaymentMethod == "Cash" ? "เงินสด" : item.PaymentMethod == "Transfer" ? "เงินโอน" :
-                      "บัตรเครดิต")
-                            </span>
-                        </td>
-                        <td class="text-end fw-bold text-success">฿ @item.NetAmount.ToString("N2")</td>
-                        <td class="text-center">
-                            <a href="@Url.Action("OrderDetails", "Manager", new { id = item.OrderId })"
-                                   class="btn btn-sm btn-primary">
-                                <i class="bi bi-search"></i> ดูรายละเอียด
-                            </a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    .sales-table tbody td {
+        padding: 18px 15px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    /* ตกแต่งเลขที่ใบเสร็จ */
+    .receipt-no {
+        font-family: 'Inter', sans-serif;
+        color: #1d976c;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    /* ปรับแต่ง Badge วิธีชำระเงิน */
+    .pay-badge {
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 6px 12px;
+        border-radius: 50px;
+    }
+
+    .bg-pay-cash { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .bg-pay-transfer { background-color: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+    .bg-pay-credit { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+    /* ยอดเงินสุทธิ */
+    .net-amount {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #1e293b;
+    }
+
+    /* ปุ่มดูรายละเอียด */
+    .btn-view-detail {
+        border-radius: 10px;
+        padding: 6px 16px;
+        font-weight: 600;
+        transition: all 0.2s;
+        border: 1px solid #e2e8f0;
+        background: white;
+        color: #475569;
+    }
+
+    .btn-view-detail:hover {
+        background-color: #f8fafc;
+        color: #1d976c;
+        border-color: #1d976c;
+        transform: translateY(-1px);
+    }
+</style>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-clock-history text-success me-2"></i> ประวัติการขายสินค้า</h2>
+        <p class="text-muted small mb-0">ตรวจสอบรายการขายทั้งหมดที่เกิดขึ้นผ่านระบบ POS ของชาติชายฟาร์ม</p>
+    </div>
+    <div class="no-print">
+        <button onclick="window.print()" class="btn btn-outline-dark btn-sm rounded-pill px-3">
+            <i class="bi bi-printer me-1"></i> พิมพ์รายงาน
+        </button>
     </div>
 </div>
+
+<div class="card shadow-sm border-0" style="border-radius: 20px; overflow: hidden;">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 sales-table">
+                <thead>
+                    <tr>
+                        <th class="ps-4">เลขที่ใบเสร็จ</th>
+                        <th>วันที่ - เวลา</th>
+                        <th>พนักงานขาย (แคชเชียร์)</th>
+                        <th>ช่องทางชำระเงิน</th>
+                        <th class="text-end">ยอดเงินสุทธิ</th>
+                        <th class="text-center pe-4">การจัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <span class="receipt-no">#@item.ReceiptNo</span>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">@item.OrderDate.Value.ToString("dd MMM yyyy")</div>
+                                <div class="text-muted small">@item.OrderDate.Value.ToString("HH:mm") น.</div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                        <i class="bi bi-person text-secondary"></i>
+                                    </div>
+                                    <span class="small fw-semibold">@item.Cashier?.FirstName @item.Cashier?.LastName</span>
+                                </div>
+                            </td>
+                            <td>
+                                @if (item.PaymentMethod == "Cash")
+                                {
+                                    <span class="pay-badge bg-pay-cash"><i class="bi bi-cash me-1"></i> เงินสด</span>
+                                }
+                                else if (item.PaymentMethod == "Transfer")
+                                {
+                                    <span class="pay-badge bg-pay-transfer"><i class="bi bi-bank me-1"></i> เงินโอน</span>
+                                }
+                                else
+                                {
+                                    <span class="pay-badge bg-pay-credit"><i class="bi bi-credit-card me-1"></i> บัตรเครดิต</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <span class="net-amount">฿@item.NetAmount.ToString("N2")</span>
+                            </td>
+                            <td class="text-center pe-4">
+                                <a href="@Url.Action("OrderDetails", "Manager", new { id = item.OrderId })"
+                                   class="btn btn-view-detail shadow-sm btn-sm">
+                                    <i class="bi bi-search me-1"></i> รายละเอียด
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <i class="bi bi-receipt opacity-25" style="font-size: 4rem;"></i>
+        <p class="text-muted mt-3">ยังไม่มีประวัติการขายในระบบ</p>
+    </div>
+}

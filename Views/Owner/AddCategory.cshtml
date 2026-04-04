@@ -4,45 +4,120 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container mt-4">
+<style>
+    .form-card {
+        border-radius: 20px;
+        overflow: hidden;
+        background: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+    }
 
+    .form-header {
+        background: linear-gradient(135deg, #1d976c 0%, #167a57 100%);
+        padding: 25px;
+        color: white;
+    }
+
+    .form-label {
+        font-size: 0.9rem;
+        color: #475569;
+        margin-bottom: 8px;
+    }
+
+    .form-control-lg {
+        border-radius: 12px;
+        border: 1px solid #cbd5e1;
+        padding: 12px 15px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control-lg:focus {
+        border-color: #1d976c;
+        box-shadow: 0 0 0 4px rgba(29, 151, 108, 0.1);
+    }
+
+    .btn-action {
+        border-radius: 12px;
+        padding: 10px 24px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save {
+        background: linear-gradient(45deg, #1d976c, #167a57);
+        border: none;
+        color: white;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(29, 151, 108, 0.3);
+        color: white;
+    }
+
+    .info-box {
+        background-color: #f8fafc;
+        border-radius: 15px;
+        padding: 15px;
+        border-left: 4px solid #1d976c;
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+</style>
+
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-6">
+        <div class="col-lg-6 col-md-8">
+            
+            <div class="mb-4">
+                <h2 class="fw-bold mb-1 text-dark">หมวดหมู่สินค้า</h2>
+                <p class="text-muted small">เพิ่มประเภทสินค้าใหม่เพื่อให้การจัดระเบียบสต็อกทำได้ง่ายขึ้น</p>
+            </div>
 
-            <div class="card shadow border-0 rounded-4">
-                <div class="card-header bg-success text-white rounded-top-4">
-                    <h5 class="mb-0">
-                        <i class="bi bi-plus-circle"></i> เพิ่มหมวดหมู่สินค้า
+            <div class="card form-card border-0">
+                <div class="form-header">
+                    <h5 class="mb-0 fw-bold d-flex align-items-center">
+                        <i class="bi bi-plus-circle-dotted me-2 fs-4"></i> เพิ่มหมวดหมู่ใหม่
                     </h5>
                 </div>
 
-                <div class="card-body p-4">
-
+                <div class="card-body p-4 p-md-5">
                     <form asp-action="AddCategory" method="post">
-
-                        <div class="mb-3">
-                            <label asp-for="CategoryName" class="form-label fw-semibold"></label>
-                            <input asp-for="CategoryName" class="form-control form-control-lg"
-                                   placeholder="เช่น ปุ๋ยเคมี, ปุ๋ยอินทรีย์" />
-                            <span asp-validation-for="CategoryName" class="text-danger small"></span>
+                        
+                        <div class="mb-4">
+                            <label asp-for="CategoryName" class="form-label fw-bold">ชื่อหมวดหมู่สินค้า</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0" style="border-radius: 12px 0 0 12px;">
+                                    <i class="bi bi-tag text-success"></i>
+                                </span>
+                                <input asp-for="CategoryName" class="form-control form-control-lg border-start-0"
+                                       placeholder="เช่น ปุ๋ยเคมี, อุปกรณ์ทำสวน" style="border-radius: 0 12px 12px 0;" />
+                            </div>
+                            <span asp-validation-for="CategoryName" class="text-danger small mt-1 d-block"></span>
                         </div>
 
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="@Url.Action("Categories", "Owner")" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left"></i> กลับ
+                        <div class="info-box mb-4">
+                            <i class="bi bi-info-circle-fill me-2 text-success"></i>
+                            <strong>คำแนะนำ:</strong> ชื่อหมวดหมู่ควรมีความกระชับและชัดเจนเพื่อให้พนักงานแคชเชียร์ค้นหาได้ง่ายในหน้า POS
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-5 pt-3 border-top">
+                            <a href="@Url.Action("Categories", "Owner")" class="btn btn-outline-secondary btn-action">
+                                <i class="bi bi-arrow-left me-1"></i> ยกเลิก
                             </a>
 
-                            <button type="submit" class="btn btn-success px-4">
-                                <i class="bi bi-save"></i> บันทึก
+                            <button type="submit" class="btn btn-save btn-action shadow-sm">
+                                <i class="bi bi-check2-circle me-1"></i> ยืนยันบันทึกข้อมูล
                             </button>
                         </div>
-
                     </form>
-
                 </div>
             </div>
 
+            <div class="text-center mt-4 opacity-50">
+                <i class="bi bi-leaf text-success fs-2"></i>
+            </div>
         </div>
     </div>
-
 </div>

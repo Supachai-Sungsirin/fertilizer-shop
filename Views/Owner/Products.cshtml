@@ -4,60 +4,168 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-box-seam"></i> รายการสินค้าทั้งหมด</h2>
-    <a href="@Url.Action("AddProduct", "Owner")" class="btn btn-success"><i class="bi bi-plus-circle"></i> เพิ่มสินค้าใหม่</a>
+<style>
+    .product-table thead th {
+        background-color: #f8fafc;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        font-weight: 700;
+        color: #475569;
+        padding: 15px;
+        border: none;
+    }
+
+    .product-table tbody td {
+        padding: 16px 15px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .product-name {
+        font-size: 0.95rem;
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+    .sku-tag {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.8rem;
+        background: #f1f5f9;
+        padding: 2px 8px;
+        border-radius: 4px;
+        color: #64748b;
+    }
+
+    .price-text {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        color: #1d976c;
+    }
+
+    .stock-badge {
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .btn-action-prod {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        transition: all 0.2s;
+        margin: 0 2px;
+    }
+
+    .btn-action-prod:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .category-badge {
+        background-color: #e2e8f0;
+        color: #475569;
+        font-weight: 500;
+        padding: 5px 10px;
+        border-radius: 6px;
+    }
+</style>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-box-seam-fill text-success me-2"></i> จัดการคลังสินค้า</h2>
+        <p class="text-muted small mb-0">ตรวจสอบจำนวนสต็อก แก้ไขราคา และจัดการรายการสินค้าปุ๋ยทั้งหมด</p>
+    </div>
+    <a href="@Url.Action("AddProduct", "Owner")" class="btn btn-success shadow-sm px-4 py-2" style="border-radius: 10px;">
+        <i class="bi bi-plus-circle-fill me-2"></i> เพิ่มสินค้าใหม่
+    </a>
 </div>
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show">
-        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" style="border-radius: 12px;">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-octagon-fill fs-4 me-3"></i>
+            <div>@TempData["ErrorMessage"]</div>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
-<div class="card shadow-sm border-0">
+<div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
     <div class="card-body p-0">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>รหัส</th>
-                    <th>ชื่อสินค้า</th>
-                    <th>หมวดหมู่</th>
-                    <th class="text-end">ราคาขาย</th>
-                    <th class="text-end">คงเหลือ (ชิ้น/กระสอบ)</th>
-                    <th class="text-center">จัดการ</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var p in Model)
-                {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 product-table">
+                <thead>
                     <tr>
-                        <td class="text-muted">P-@p.ProductId.ToString("D3")</td>
-                        <td class="fw-bold text-success">@p.Name</td>
-                        <td><span class="badge bg-secondary">@p.Category.CategoryName</span></td>
-                        <td class="text-end">฿ @p.Price.ToString("N2")</td>
-                        <td class="text-end">
-                            @if(p.StockQuantity <= 5) {
-                                <span class="text-danger fw-bold"><i class="bi bi-exclamation-circle"></i> @p.StockQuantity</span>
-                            } else {
-                                <span>@p.StockQuantity</span>
-                            }
-                        </td>
-                        <td class="text-center">
-                            <a href="@Url.Action("EditProduct", "Owner", new { id = p.ProductId })" class="btn btn-sm btn-outline-warning" title="แก้ไข">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                            <a href="@Url.Action("DeleteProduct", "Owner", new { id = p.ProductId })" 
-                               class="btn btn-sm btn-outline-danger" 
-                               onclick="return confirm('ลบสินค้า @p.Name ใช่หรือไม่?');" title="ลบ">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                        </td>
+                        <th class="ps-4">รหัสสินค้า</th>
+                        <th>ชื่อรายการสินค้า</th>
+                        <th>หมวดหมู่</th>
+                        <th class="text-end">ราคาขาย</th>
+                        <th class="text-center">คงเหลือในสต็อก</th>
+                        <th class="text-center pe-4">จัดการ</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <span class="sku-tag">P-@p.ProductId.ToString("D3")</span>
+                            </td>
+                            <td>
+                                <div class="product-name">@p.Name</div>
+                            </td>
+                            <td>
+                                <span class="category-badge small">@p.Category.CategoryName</span>
+                            </td>
+                            <td class="text-end">
+                                <span class="price-text">฿@p.Price.ToString("N2")</span>
+                            </td>
+                            <td class="text-center">
+                                @if (p.StockQuantity <= 0)
+                                {
+                                    <span class="badge bg-dark stock-badge">
+                                        <i class="bi bi-x-octagon me-1"></i> สินค้าหมด
+                                    </span>
+                                }
+                                else if (p.StockQuantity <= 5)
+                                {
+                                    <span class="badge bg-danger stock-badge">
+                                        <i class="bi bi-exclamation-triangle me-1"></i> วิกฤต: @p.StockQuantity
+                                    </span>
+                                }
+                                else if (p.StockQuantity <= 15)
+                                {
+                                    <span class="badge bg-warning text-dark stock-badge">
+                                        <i class="bi bi-graph-down me-1"></i> ต่ำ: @p.StockQuantity
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success-subtle text-success stock-badge">
+                                        @p.StockQuantity <small>ชิ้น/กระสอบ</small>
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-center pe-4">
+                                <a href="@Url.Action("EditProduct", "Owner", new { id = p.ProductId })" 
+                                   class="btn btn-action-prod btn-outline-warning" title="แก้ไขข้อมูล">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <a href="@Url.Action("DeleteProduct", "Owner", new { id = p.ProductId })" 
+                                   class="btn btn-action-prod btn-outline-danger" 
+                                   onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบสินค้า [@p.Name] ออกจากระบบ?');" title="ลบสินค้า">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

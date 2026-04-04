@@ -1,64 +1,158 @@
 @model FertilizerShop.Models.Order
 @{
-    ViewData["Title"] = "รายละเอียดบิล";
+    ViewData["Title"] = "ตรวจสอบรายการขาย #" + Model.ReceiptNo;
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     var details = ViewBag.OrderDetails as IEnumerable<FertilizerShop.Models.Orderdetail>;
 }
 
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="@Url.Action("SalesHistory", "Manager")">ประวัติการขาย</a></li>
-    <li class="breadcrumb-item active">@Model.ReceiptNo</li>
-  </ol>
-</nav>
+<style>
+    :root {
+        --subtle-bg: #f1f5f9;
+        --border-color: #e2e8f0;
+        --primary-dark: #0f172a;
+    }
 
-<div class="card shadow-sm border-0">
-    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 fw-bold text-success">รายละเอียดใบเสร็จ: @Model.ReceiptNo</h5>
-        <a href="@Url.Action("Receipt", "Cashier", new { id = Model.OrderId })" target="_blank" class="btn btn-outline-dark btn-sm">
-            <i class="bi bi-printer"></i> พิมพ์ใบเสร็จซ้ำ
-        </a>
-    </div>
-    <div class="card-body">
-        <div class="row mb-4">
-            <div class="col-sm-6">
-                <p class="text-muted mb-1">ข้อมูลทั่วไป</p>
-                <h6 class="fw-bold">วันที่: @Model.OrderDate.Value.ToString("dd/MM/yyyy HH:mm")</h6>
-                <h6>พนักงานขาย: @Model.Cashier?.FirstName @Model.Cashier?.LastName</h6>
+    /* โครงสร้างหน้าแบบ 2 คอลัมน์ (Main Content & Side Action) */
+    .workspace-wrapper { display: flex; flex-wrap: wrap; gap: 24px; }
+    .main-content { flex: 1; min-width: 300px; }
+    .side-content { width: 320px; }
+
+    /* ตกแต่ง Header แบบเรียบหรู */
+    .doc-header { background: white; border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+    .status-pill { font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    /* Table Styling แบบมือโปร */
+    .data-table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; }
+    .data-table th { background: #f8fafc; padding: 16px; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid var(--border-color); }
+    .data-table td { padding: 16px; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; }
+    .data-table tr:last-child td { border-bottom: none; }
+
+    /* Side Card Styling */
+    .side-card { background: white; border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+    .side-card h6 { font-size: 0.85rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+    /* Timeline สำหรับตรวจสอบ */
+    .audit-trail { position: relative; padding-left: 20px; list-style: none; margin: 0; }
+    .audit-trail::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--border-color); }
+    .audit-item { position: relative; padding-bottom: 16px; font-size: 0.85rem; }
+    .audit-item::after { content: ''; position: absolute; left: -24px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: #1d976c; border: 2px solid white; }
+
+    .btn-action-main { border-radius: 12px; padding: 12px; font-weight: 600; width: 100%; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+</style>
+
+<!-- Top Navigation -->
+<div class="mb-4 d-flex align-items-center justify-content-between">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="@Url.Action("SalesHistory", "Manager")" class="text-muted text-decoration-none">รายงานการขาย</a></li>
+            <li class="breadcrumb-item active fw-bold">เลขที่ @Model.ReceiptNo</li>
+        </ol>
+    </nav>
+    <div class="text-muted small">ID อ้างอิงระบบ: #TRX-@Model.OrderId.ToString("D6")</div>
+</div>
+
+<div class="workspace-wrapper">
+    <!-- คอลัมน์หลัก: รายการสินค้า -->
+    <div class="main-content">
+        <div class="doc-header d-flex justify-content-between align-items-start">
+            <div>
+                <h3 class="fw-bold text-dark mb-1">@Model.ReceiptNo</h3>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="status-pill bg-success text-white">ชำระเงินแล้ว</span>
+                    <span class="text-muted small">บันทึกเมื่อ: @Model.OrderDate.Value.ToString("dd/MM/yyyy HH:mm") น.</span>
+                </div>
             </div>
-            <div class="col-sm-6 text-sm-end">
-                <p class="text-muted mb-1">สถานะการชำระเงิน</p>
-                <h6 class="fw-bold text-primary">วิธีชำระ: @Model.PaymentMethod</h6>
-                <h6 class="text-danger">ส่วนลด: ฿ @Model.DiscountAmount?.ToString("N2")</h6>
+            <div class="text-end">
+                <div class="text-muted small fw-bold text-uppercase">ยอดรวมสุทธิ</div>
+                <div class="h2 fw-bold text-success mb-0">฿@Model.NetAmount.ToString("N2")</div>
             </div>
         </div>
 
-        <table class="table table-bordered">
-            <thead class="table-light">
+        <table class="data-table shadow-sm">
+            <thead>
                 <tr>
-                    <th>สินค้า</th>
+                    <th>รายการสินค้า</th>
                     <th class="text-center">ราคา/หน่วย</th>
                     <th class="text-center">จำนวน</th>
-                    <th class="text-end">รวม</th>
+                    <th class="text-end">รวมสุทธิ</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var d in details)
                 {
                     <tr>
-                        <td>@d.Product?.Name</td>
-                        <td class="text-center">@d.UnitPrice.ToString("N2")</td>
-                        <td class="text-center">@d.Quantity</td>
-                        <td class="text-end">@d.SubTotal.ToString("N2")</td>
+                        <td>
+                            <div class="fw-bold">@d.Product?.Name</div>
+                            <div class="text-muted x-small">SKU: @d.Product?.Sku</div>
+                        </td>
+                        <td class="text-center text-muted">@d.UnitPrice.ToString("N2")</td>
+                        <td class="text-center fw-bold">@d.Quantity</td>
+                        <td class="text-end fw-bold text-dark">@d.SubTotal.ToString("N2")</td>
                     </tr>
                 }
             </tbody>
-            <tfoot>
+            <tfoot style="background: #f8fafc;">
                 <tr>
-                    <th colspan="3" class="text-end">ยอดรวมทั้งสิ้น</th>
-                    <th class="text-end fs-5 text-success">฿ @Model.NetAmount.ToString("N2")</th>
+                    <td colspan="3" class="text-end fw-bold text-muted uppercase p-3">มูลค่าสินค้ารวม</td>
+                    <td class="text-end fw-bold p-3">@((Model.NetAmount + (Model.DiscountAmount ?? 0)).ToString("N2"))</td>
                 </tr>
+                @if (Model.DiscountAmount > 0)
+                {
+                    <tr>
+                        <td colspan="3" class="text-end fw-bold text-danger p-3">ส่วนลดโปรโมชั่น</td>
+                        <td class="text-end fw-bold text-danger p-3">- @Model.DiscountAmount?.ToString("N2")</td>
+                    </tr>
+                }
             </tfoot>
         </table>
+    </div>
+
+    <!-- คอลัมน์ข้าง: ข้อมูลสรุปและปุ่มดำเนินการ -->
+    <div class="side-content">
+        <!-- ปุ่มดำเนินการหลัก -->
+        <div class="side-card border-0 shadow-sm" style="background: var(--primary-dark);">
+            <a href="@Url.Action("Receipt", "Cashier", new { id = Model.OrderId })" target="_blank" class="btn btn-light btn-action-main">
+                <i class="bi bi-printer"></i> พิมพ์ใบเสร็จซ้ำ
+            </a>
+            <button class="btn btn-outline-light btn-action-main border-secondary">
+                <i class="bi bi-envelope"></i> ส่งเข้าอีเมลลูกค้า
+            </button>
+        </div>
+
+        <!-- รายละเอียดการชำระเงิน -->
+        <div class="side-card shadow-sm">
+            <h6><i class="bi bi-credit-card-2-back"></i> รายละเอียดการชำระ</h6>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted small">วิธีชำระเงิน:</span>
+                <span class="fw-bold text-primary">@Model.PaymentMethod</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted small">สถานะ:</span>
+                <span class="text-success fw-bold">Success</span>
+            </div>
+            <div class="d-flex justify-content-between">
+                <span class="text-muted small">พนักงานขาย:</span>
+                <span class="fw-bold">@Model.Cashier?.FirstName</span>
+            </div>
+        </div>
+
+        <!-- Audit Trail / ประวัติรายการ -->
+        <div class="side-card shadow-sm">
+            <h6><i class="bi bi-shield-check"></i> ประวัติรายการ (Audit)</h6>
+            <ul class="audit-trail">
+                <li class="audit-item">
+                    <div class="fw-bold">ทำรายการสำเร็จ</div>
+                    <div class="text-muted x-small">@Model.OrderDate.Value.ToString("HH:mm") น.</div>
+                </li>
+                <li class="audit-item">
+                    <div class="fw-bold text-muted">หักสต็อกสินค้าเรียบร้อย</div>
+                    <div class="text-muted x-small">อัตโนมัติโดยระบบ</div>
+                </li>
+                <li class="audit-item" style="padding-bottom: 0;">
+                    <div class="fw-bold text-muted">พิมพ์ใบเสร็จ (ครั้งแรก)</div>
+                    <div class="text-muted x-small">@Model.OrderDate.Value.ToString("HH:mm") น.</div>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
