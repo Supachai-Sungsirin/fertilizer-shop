@@ -1,0 +1,106 @@
+@model IEnumerable<FertilizerShop.Models.Claim>
+@{
+    ViewData["Title"] = "จัดการคำร้องเคลมสินค้า";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml"; 
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-dark"><i class="bi bi-shield-exclamation text-danger"></i> จัดการคำร้องเคลมสินค้า</h3>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0" style="border-radius: 15px;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted">
+                        <tr>
+                            <th class="px-4 py-3">วันที่แจ้ง</th>
+                            <th>เลขที่บิล</th>
+                            <th>ข้อมูลลูกค้า</th>
+                            <th>สินค้าที่เคลม</th>
+                            <th width="25%">ปัญหาที่พบ</th>
+                            <th class="text-center">สถานะ</th>
+                            <th class="text-center">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="px-4">@item.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="fw-bold text-danger">@item.Order?.ReceiptNo</td>
+                                    <td>
+                                        <div class="fw-bold">@item.Customer?.FullName</div>
+                                        <div class="small text-muted">@item.Customer?.Phone</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">SKU: @item.Product?.Sku</span><br />
+                                        @item.Product?.Name
+                                    </td>
+                                    <td><small>@item.ProblemDescription</small></td>
+                                    <td class="text-center">
+                                        @if (item.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> รอดำเนินการ</span>
+                                        }
+                                        else if (item.Status == "Approved")
+                                        {
+                                            <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> อนุมัติเคลม</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger"><i class="bi bi-x-circle-fill"></i> ปฏิเสธ</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.Status == "Pending")
+                                        {
+                                            <form asp-action="UpdateClaimStatus" method="post" class="d-inline">
+                                                <input type="hidden" name="claimId" value="@item.ClaimId" />
+                                                <input type="hidden" name="newStatus" value="Approved" />
+                                                <button type="submit" class="btn btn-sm btn-success shadow-sm" title="อนุมัติ" onclick="return confirm('ยืนยันการอนุมัติเคลมสินค้านี้ใช่หรือไม่?');">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                            </form>
+                                            <form asp-action="UpdateClaimStatus" method="post" class="d-inline">
+                                                <input type="hidden" name="claimId" value="@item.ClaimId" />
+                                                <input type="hidden" name="newStatus" value="Rejected" />
+                                                <button type="submit" class="btn btn-sm btn-danger shadow-sm" title="ปฏิเสธ" onclick="return confirm('ยืนยันการปฏิเสธเคลมสินค้านี้ใช่หรือไม่?');">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">- ดำเนินการแล้ว -</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+                                    ยังไม่มีคำร้องแจ้งเคลมสินค้า
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

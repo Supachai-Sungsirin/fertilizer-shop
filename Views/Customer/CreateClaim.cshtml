@@ -1,0 +1,53 @@
+@{
+    ViewData["Title"] = "แจ้งปัญหา / เคลมสินค้า";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var detail = ViewBag.OrderDetail as FertilizerShop.Models.Orderdetail;
+}
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]</div>
+            }
+
+            <div class="card shadow border-0" style="border-radius: 15px;">
+                <div class="card-header bg-danger text-white py-3 border-0" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-shield-exclamation"></i> แบบฟอร์มแจ้งปัญหาการใช้งาน / เคลมสินค้า</h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="alert alert-light border shadow-sm mb-4">
+                        <p class="fw-bold mb-1">กำลังทำรายการเคลมบิลเลขที่: <span class="text-danger">@detail.Order.ReceiptNo</span></p>
+                        <p class="mb-0 mt-2 p-2 bg-white border border-danger rounded text-dark fw-bold">
+                            <i class="bi bi-box-seam-fill text-danger me-2"></i> สินค้าที่เคลม: @detail.Product.Name (จำนวน @detail.Quantity ชิ้น)
+                        </p>
+                    </div>
+
+                    <form asp-action="CreateClaim" method="post">
+                        <input type="hidden" name="orderId" value="@detail.OrderId" />
+                        <input type="hidden" name="productId" value="@detail.ProductId" />
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark">อธิบายปัญหาที่พบ <span class="text-danger">*</span></label>
+                            <textarea name="problemDescription" class="form-control bg-light" rows="5" placeholder="เช่น สินค้าชำรุด, ได้รับของไม่ครบ, ถุงปุ๋ยฉีกขาด ฯลฯ" required></textarea>
+                            <small class="text-muted mt-2 d-block">กรุณาอธิบายอาการอย่างละเอียดเพื่อความรวดเร็วในการพิจารณา</small>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Index", "Customer")" class="btn btn-outline-secondary fw-bold px-4">ยกเลิก</a>
+                            <button type="submit" class="btn btn-danger fw-bold px-5 shadow-sm">
+                                <i class="bi bi-send-fill"></i> ส่งเรื่องเคลม
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>

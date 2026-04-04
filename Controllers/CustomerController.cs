@@ -20,18 +20,18 @@ namespace FertilizerShop.Controllers
 
         public IActionResult Index()
         {
-            // 1. ดึง ID ของลูกค้าที่ล็อกอินอยู่จากระบบ (Claims)
+            // ดึง ID ของลูกค้าที่ล็อกอินอยู่จากระบบ (Claims)
             var customerIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(customerIdStr, out int customerId)) 
             {
                 return RedirectToAction("Login", "CustomerAuth");
             }
 
-            // 2. ดึงข้อมูลส่วนตัวของลูกค้า
+            // ดึงข้อมูลส่วนตัวของลูกค้า
             var customer = _db.Customers.Find(customerId);
             if (customer == null) return NotFound();
 
-            // 3. ดึงประวัติการซื้อ (พร้อมรายละเอียดสินค้าในบิล)
+            // ดึงประวัติการซื้อ (พร้อมรายละเอียดสินค้าในบิล)
             var orders = _db.Orders
                             .Include(o => o.Orderdetails)
                                 .ThenInclude(od => od.Product) // ดึงชื่อสินค้ามาด้วย
@@ -39,7 +39,7 @@ namespace FertilizerShop.Controllers
                             .OrderByDescending(o => o.OrderDate)
                             .ToList();
 
-            // 4. ประกอบร่างส่งให้ View
+            // ประกอบร่างส่งให้ View
             var model = new CustomerProfileViewModel
             {
                 FullName = customer.FullName,
@@ -50,7 +50,66 @@ namespace FertilizerShop.Controllers
                 OrderHistory = orders
             };
 
+            ViewBag.MyClaims = _db.Claims.Where(c => c.CustomerId == customerId).ToList();
+
             return View(model);
+        }
+
+        // --- หน้าจอแบบฟอร์มแจ้งเคลม ---
+        [HttpGet]
+        public IActionResult CreateClaim(int orderId, int productId)
+        {
+            var customerIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(customerIdStr, out int customerId)) return RedirectToAction("Login", "CustomerAuth");
+
+            // ดึงรายละเอียดสินค้าในบิลที่ลูกค้าคลิกมา
+            var orderDetail = _db.Orderdetails
+                                 .Include(od => od.Order)
+                                 .Include(od => od.Product)
+                                 .FirstOrDefault(od => od.OrderId == orderId && od.ProductId == productId && od.Order.CustomerId == customerId);
+
+            if (orderDetail == null) return NotFound();
+
+            // ป้องกันคนพิมพ์ URL มาเคลมซ้ำ
+            bool isAlreadyClaimed = _db.Claims.Any(c => c.OrderId == orderId && c.ProductId == productId);
+            if (isAlreadyClaimed)
+            {
+                TempData["Error"] = "สินค้านี้ถูกแจ้งเคลมไปแล้ว ไม่สามารถแจ้งซ้ำได้";
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.OrderDetail = orderDetail;
+            return View();
+        }
+
+        // --- รับข้อมูลเมื่อลูกค้ากดส่งฟอร์ม ---
+        [HttpPost]
+        public IActionResult CreateClaim(int orderId, int productId, string problemDescription)
+        {
+            var customerIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(customerIdStr, out int customerId)) return RedirectToAction("Login", "CustomerAuth");
+
+            // ป้องกันการกดย้ำๆ (Double Submit)
+            if (_db.Claims.Any(c => c.OrderId == orderId && c.ProductId == productId))
+            {
+                return RedirectToAction("Index");
+            }
+
+            var claim = new FertilizerShop.Models.Claim
+            {
+                CustomerId = customerId,
+                OrderId = orderId,
+                ProductId = productId,
+                ProblemDescription = problemDescription,
+                Status = "Pending", 
+                CreatedAt = DateTime.Now
+            };
+
+            _db.Claims.Add(claim);
+            _db.SaveChanges();
+
+            TempData["Success"] = "ส่งเรื่องแจ้งเคลมสำเร็จ! ทางร้านจะตรวจสอบและติดต่อกลับโดยเร็วที่สุด";
+            return RedirectToAction("Index");
         }
     }
 }

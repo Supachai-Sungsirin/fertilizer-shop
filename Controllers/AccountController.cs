@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using FertilizerShop.Models;
 using FertilizerShop.ViewModels;
+using Claim = System.Security.Claims.Claim;
 
 namespace FertilizerShop.Controllers
 {
