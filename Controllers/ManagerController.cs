@@ -256,7 +256,7 @@ namespace FertilizerShop.Controllers
                     var product = _db.Products.Find(item.ProductId);
                     if (product != null)
                     {
-                        product.StockQuantity += item.Quantity; // อัปเดตสต็อกจริงที่นี่!
+                        product.StockQuantity += item.Quantity;
                     }
                 }
 
@@ -264,6 +264,34 @@ namespace FertilizerShop.Controllers
                 TempData["SuccessMessage"] = $"รับสินค้าจากใบสั่งซื้อ PO-{po.PoId} เข้าสต็อกเรียบร้อยแล้ว!";
             }
             return RedirectToAction("PODetails", new { id = id });
+        }
+
+        // --- หน้ารายการเคลมสินค้าทั้งหมด ---
+        public IActionResult Claims()
+        {
+            // ดึงข้อมูลการเคลมทั้งหมด พ่วงข้อมูลลูกค้า, บิล และ สินค้า มาด้วย
+            var claims = _db.Claims
+                            .Include(c => c.Customer)
+                            .Include(c => c.Order)
+                            .Include(c => c.Product)
+                            .OrderByDescending(c => c.CreatedAt)
+                            .ToList();
+
+            return View(claims);
+        }
+
+        // --- อนุมัติ/ปฏิเสธ ---
+        [HttpPost]
+        public IActionResult UpdateClaimStatus(int claimId, string newStatus)
+        {
+            var claim = _db.Claims.FirstOrDefault(c => c.ClaimId == claimId);
+            if (claim != null)
+            {
+                claim.Status = newStatus;
+                _db.SaveChanges();
+                TempData["Success"] = "อัปเดตสถานะคำร้องเคลมสำเร็จ!";
+            }
+            return RedirectToAction("Claims");
         }
     }
 }

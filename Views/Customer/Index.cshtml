@@ -15,7 +15,9 @@
                     </div>
                     <h4 class="fw-bold text-dark mb-1">@Model.FullName</h4>
                     <p class="text-muted mb-0"><i class="bi bi-telephone-fill"></i> @Model.Phone</p>
+                    
                     <hr class="my-4">
+                    
                     <div class="row text-center">
                         <div class="col-6 border-end">
                             <h6 class="text-muted mb-1 small">แต้มสะสม</h6>
@@ -31,7 +33,7 @@
                     <small class="text-muted">เป็นสมาชิกตั้งแต่: @(Model.MemberSince?.ToString("dd/MM/yyyy") ?? "ไม่ระบุ")</small>
                 </div>
             </div>
-            
+    
             <div class="card shadow-sm border-0 bg-success text-white" style="border-radius: 15px;">
                 <div class="card-body p-4 text-center">
                     <h5 class="fw-bold"><i class="bi bi-gift-fill"></i> สิทธิพิเศษ!</h5>
@@ -43,13 +45,17 @@
         <div class="col-lg-8">
             <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
                 <div class="card-header bg-white py-3 border-0 border-bottom">
-                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-clock-history text-success"></i> ประวัติการซื้อสินค้า</h5>
+                    <h5 class="mb-0 fw-bold text-dark">
+                        <i class="bi bi-clock-history text-success"></i> ประวัติการซื้อสินค้า
+                    </h5>
                 </div>
+                
                 <div class="card-body p-0">
                     @if (Model.OrderHistory.Any())
                     {
                         <div class="accordion accordion-flush" id="orderHistoryAccordion">
                             @{ int i = 1; }
+                            
                             @foreach (var order in Model.OrderHistory)
                             {
                                 <div class="accordion-item">
@@ -57,8 +63,7 @@
                                         <button class="accordion-button collapsed py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@order.OrderId">
                                             <div class="d-flex justify-content-between w-100 pe-3 align-items-center">
                                                 <div>
-                                                    <span class="fw-bold text-dark">บิลที่: @order.ReceiptNo</span>
-                                                    <br>
+                                                    <span class="fw-bold text-dark">บิลที่: @order.ReceiptNo</span><br>
                                                     <small class="text-muted">@order.OrderDate?.ToString("dd/MM/yyyy HH:mm")</small>
                                                 </div>
                                                 <div class="text-end">
@@ -67,6 +72,7 @@
                                             </div>
                                         </button>
                                     </h2>
+                                    
                                     <div id="collapse-@order.OrderId" class="accordion-collapse collapse" data-bs-parent="#orderHistoryAccordion">
                                         <div class="accordion-body bg-light">
                                             <table class="table table-sm table-borderless mb-0">
@@ -75,18 +81,39 @@
                                                         <th>สินค้า</th>
                                                         <th class="text-center">จำนวน</th>
                                                         <th class="text-end">รวม</th>
+                                                        <th class="text-center">จัดการ</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
+                                                    @{
+                                                        var myClaims = ViewBag.MyClaims as List<FertilizerShop.Models.Claim> ?? new List<FertilizerShop.Models.Claim>();
+                                                    }
+                                        
                                                     @foreach (var detail in order.Orderdetails)
                                                     {
+                                                        var existingClaim = myClaims.FirstOrDefault(c => c.OrderId == order.OrderId && c.ProductId == detail.ProductId);
                                                         <tr>
                                                             <td>@detail.Product?.Name</td>
                                                             <td class="text-center">@detail.Quantity</td>
                                                             <td class="text-end">@detail.SubTotal.ToString("N2")</td>
+                                                            <td class="text-center">
+                                                                @if (existingClaim != null)
+                                                                {
+                                                                    <span class="badge bg-warning text-dark shadow-sm">
+                                                                        <i class="bi bi-hourglass-split"></i> แจ้งแล้ว (@existingClaim.Status)
+                                                                    </span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <a href="@Url.Action("CreateClaim", "Customer", new { orderId = order.OrderId, productId = detail.ProductId })" class="btn btn-sm btn-outline-danger rounded-pill" title="แจ้งเคลมชิ้นนี้">
+                                                                        <i class="bi bi-shield-exclamation"></i> เคลม
+                                                                    </a>
+                                                                }
+                                                            </td>
                                                         </tr>
                                                     }
                                                 </tbody>
+                                                
                                                 @if (order.DiscountAmount > 0)
                                                 {
                                                     <tfoot class="border-top">
@@ -115,6 +142,6 @@
                 </div>
             </div>
         </div>
-        
+
     </div>
 </div>
