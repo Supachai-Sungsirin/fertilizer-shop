@@ -139,14 +139,16 @@
                 <div class="col animate__animated animate__fadeInUp">
                     <div class="card h-100 shadow-sm border-0 product-card">
                         <!-- Image Container -->
-                        <div class="image-wrapper">
-                            <i class="bi bi-box-seam-fill text-success opacity-25" style="font-size: 4.5rem;"></i>
-                            @if (item.StockQuantity < 5 && item.StockQuantity > 0)
-                            {
-                                <span class="position-absolute top-0 end-0 m-3 badge bg-warning text-dark shadow-sm rounded-pill">
-                                    <i class="bi bi-clock-history"></i> เหลือ @item.StockQuantity ชิ้นสุดท้าย
-                                </span>
-                            }
+                        <div class="img-container text-success bg-white" style="height: 200px; overflow: hidden; position: relative;">
+                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                {
+                                    <img src="@item.ImageUrl" class="img-fluid" style="object-fit: cover; width: 100%; height: 100%;" alt="@item.Name">
+                                }
+                            else
+                                {
+                                    <i class="bi bi-box-seam text-muted" style="font-size: 3rem; opacity: 0.2;"></i>
+                                }
+                            <span class="stock-badge text-@(item.StockQuantity < 10 ? "danger" : "muted")">คงเหลือ: @item.StockQuantity</span>
                         </div>
                         
                         <!-- Content Body -->
