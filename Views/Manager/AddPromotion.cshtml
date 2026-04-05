@@ -93,7 +93,6 @@
                     </div>
 
                     <div class="row g-4">
-                        <!-- ส่วนที่ 1: เงื่อนไข -->
                         <div class="col-md-6">
                             <div class="section-box bg-light p-4 h-100 border-top border-primary border-4">
                                 <h5 class="text-primary mb-4 d-flex align-items-center fw-bold">
@@ -105,36 +104,42 @@
                                         <option value="">-- เลือกเงื่อนไข --</option>
                                         <option value="MinAmount">💰 ยอดซื้อขั้นต่ำ (บาท)</option>
                                         <option value="MinQuantity">📦 จำนวนชิ้นขั้นต่ำ (ชิ้น/กระสอบ)</option>
+                                        <option value="MinWeight">⚖️ น้ำหนักรวมขั้นต่ำ (กก.)</option> 
                                     </select>
                                     <span asp-validation-for="ConditionType" class="text-danger small mt-1 d-block"></span>
                                 </div>
                                 <div class="mb-0">
                                     <label asp-for="ConditionValue" class="form-label fw-bold">มูลค่าเงื่อนไข</label>
-                                    <input asp-for="ConditionValue" class="form-control shadow-sm" type="number" step="0.01" placeholder="เช่น 1000" />
+                                    <input asp-for="ConditionValue" class="form-control shadow-sm" type="number" step="0.01" placeholder="เช่น 1000, 10, หรือ 20 (กก.)" />
                                     <span asp-validation-for="ConditionValue" class="text-danger small mt-1 d-block"></span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- ส่วนที่ 2: ส่วนลด -->
                         <div class="col-md-6">
                             <div class="section-box bg-light p-4 h-100 border-top border-success border-4">
                                 <h5 class="text-success mb-4 d-flex align-items-center fw-bold">
-                                    <span class="icon-step bg-success text-white">2</span> กำหนดส่วนลด
+                                    <span class="icon-step bg-success text-white">2</span> กำหนดรางวัล
                                 </h5>
                                 <div class="mb-3">
-                                    <label asp-for="RewardType" class="form-label fw-bold">ประเภทรางวัล</label>
+                                    <label asp-for="RewardType" class="form-label fw-bold">ประเภทยกเว้น/ส่วนลด</label>
                                     <select asp-for="RewardType" class="form-select shadow-sm">
-                                        <option value="">-- เลือกประเภทส่วนลด --</option>
+                                        <option value="">-- เลือกประเภทรางวัล --</option>
                                         <option value="DiscountBaht">💵 ลดเป็นบาท (Baht)</option>
                                         <option value="DiscountPercent">📉 ลดเป็นเปอร์เซ็นต์ (%)</option>
+                                        <option value="FreeShipping">🚚 จัดส่งฟรี</option>
+                                        <option value="FreeItem">🎁 แถมสินค้าฟรี</option>
                                     </select>
                                     <span asp-validation-for="RewardType" class="text-danger small mt-1 d-block"></span>
                                 </div>
-                                <div class="mb-0">
-                                    <label asp-for="RewardValue" class="form-label fw-bold">มูลค่าส่วนลด</label>
-                                    <input asp-for="RewardValue" class="form-control shadow-sm" type="number" step="0.01" placeholder="เช่น 100 หรือ 10" />
+                                <div class="mb-3">
+                                    <label asp-for="RewardValue" class="form-label fw-bold">มูลค่าส่วนลด (ใส่ 0 ถ้าเป็นส่งฟรี/ของแถม)</label>
+                                    <input asp-for="RewardValue" class="form-control shadow-sm" type="number" step="0.01" placeholder="เช่น 100 หรือ 0" />
                                     <span asp-validation-for="RewardValue" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                                <div class="mb-0 border-top pt-3 mt-3 border-success border-opacity-25">
+                                    <label asp-for="RewardItemName" class="form-label fw-bold text-success">ชื่อของแถม / ข้อความ (ถ้ามี)</label>
+                                    <input asp-for="RewardItemName" class="form-control shadow-sm border-success border-opacity-50" placeholder="เช่น จัดส่งฟรี, น้ำยาฆ่าแมลง 1 ขวด" />
                                 </div>
                             </div>
                         </div>

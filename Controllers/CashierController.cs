@@ -57,14 +57,11 @@ namespace FertilizerShop.Controllers
 
                 decimal totalAmount = data.CartItems.Sum(item => item.Price * item.Qty);
                 decimal netAmount = totalAmount - data.DiscountAmount;
-
-                // ค้นหาลูกค้าจากเบอร์โทร
                 Customer customer = null;
                 if (!string.IsNullOrEmpty(data.CustomerPhone))
                 {
                     customer = _db.Customers.FirstOrDefault(c => c.Phone == data.CustomerPhone);
                 }
-
                 var newOrder = new Order
                 {
                     ReceiptNo = receiptNo,
@@ -78,7 +75,9 @@ namespace FertilizerShop.Controllers
                 };
 
                 _db.Orders.Add(newOrder);
-                _db.SaveChanges(); // เซฟเพื่อให้ได้ OrderId มาใช้ต่อ
+                _db.SaveChanges(); 
+
+                decimal totalWeightInOrder = 0;
 
                 foreach (var item in data.CartItems)
                 {
@@ -93,14 +92,21 @@ namespace FertilizerShop.Controllers
                     _db.Orderdetails.Add(orderDetail);
 
                     var product = _db.Products.Find(item.Id);
-                    if (product != null) product.StockQuantity -= item.Qty;
+                    if (product != null) 
+                    {
+                        product.StockQuantity -= item.Qty; 
+                        
+                        totalWeightInOrder += (product.WeightPerUnit * item.Qty); 
+                    }
                 }
 
-                // อัปเดตแต้มสะสมให้ลูกค้า (ยอดสุทธิทุกๆ 100 บาท = 1 แต้ม)
                 if (customer != null)
                 {
                     int earnedPoints = (int)(netAmount / 100);
                     customer.RewardPoints = (customer.RewardPoints ?? 0) + earnedPoints;
+
+                    customer.TotalWeightBought = (customer.TotalWeightBought ?? 0) + totalWeightInOrder; 
+                    
                     _db.Customers.Update(customer);
                 }
 
@@ -112,7 +118,6 @@ namespace FertilizerShop.Controllers
                 return Json(new { success = false, message = ex.InnerException?.Message ?? ex.Message });
             }
         }
-
         public IActionResult Receipt(int id)
         {
             var order = _db.Orders

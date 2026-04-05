@@ -28,5 +28,8 @@ namespace FertilizerShop.ViewModels
 
         [Display(Name = "สถานะการใช้งาน")]
         public bool IsActive { get; set; }
+
+        [Display(Name = "ชื่อของแถม / รายละเอียด (ถ้ามี)")]
+        public string? RewardItemName { get; set; }
     }
 }
