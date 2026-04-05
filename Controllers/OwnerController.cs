@@ -15,10 +15,12 @@ namespace FertilizerShop.Controllers
     public class OwnerController : Controller
     {
         private readonly FertilizershopdbContext _db;
+        private readonly IWebHostEnvironment _env;
 
-        public OwnerController(FertilizershopdbContext db)
+        public OwnerController(FertilizershopdbContext db, IWebHostEnvironment env)
         {
             _db = db;
+            _env = env;
         }
 
         // Dashboard ภาพรวม
@@ -324,7 +326,23 @@ namespace FertilizerShop.Controllers
         {
             if (ModelState.IsValid)
             {
-                // โยนข้อมูลจาก ViewModel เข้า Model จริงของตาราง
+                string? imageUrl = null;
+
+                // ระบบอัปโหลดรูปภาพ
+                if (data.ImageUpload != null)
+                {
+                    string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "products");
+                    Directory.CreateDirectory(uploadsFolder); // สร้างโฟลเดอร์ถ้ายังไม่มี
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + data.ImageUpload.FileName;
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        data.ImageUpload.CopyTo(fileStream);
+                    }
+                    imageUrl = "/images/products/" + uniqueFileName;
+                }
+
                 var newProduct = new Product
                 {
                     Sku = data.Sku,
@@ -333,11 +351,12 @@ namespace FertilizerShop.Controllers
                     WeightPerUnit = data.WeightPerUnit,
                     Price = data.Price,
                     StockQuantity = data.StockQuantity,
-                    ExpiryDate = data.ExpiryDate
+                    ExpiryDate = data.ExpiryDate,
+                    ImageUrl = imageUrl
                 };
 
                 _db.Products.Add(newProduct);
-                _db.SaveChanges(); // คราวนี้ Save ผ่านแน่นอนเพราะข้อมูลครบ
+                _db.SaveChanges(); 
                 return RedirectToAction("Products");
             }
 
@@ -374,6 +393,20 @@ namespace FertilizerShop.Controllers
             {
                 var product = _db.Products.Find(data.ProductId);
                 if (product == null) return NotFound();
+
+                if (data.ImageUpload != null)
+                {
+                    string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "products");
+                    Directory.CreateDirectory(uploadsFolder);
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + data.ImageUpload.FileName;
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        data.ImageUpload.CopyTo(fileStream);
+                    }
+                    product.ImageUrl = "/images/products/" + uniqueFileName; 
+                }
 
                 product.Sku = data.Sku;
                 product.Name = data.Name;

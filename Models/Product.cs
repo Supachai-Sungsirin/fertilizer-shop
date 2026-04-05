@@ -21,6 +21,8 @@ public partial class Product
 
     public DateOnly? ExpiryDate { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public virtual Category Category { get; set; } = null!;
 
     public virtual ICollection<Orderdetail> Orderdetails { get; set; } = new List<Orderdetail>();
