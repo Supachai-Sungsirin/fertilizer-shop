@@ -99,7 +99,7 @@
                     @foreach (var p in Model)
                     {
                         <div class="col-xl-3 col-lg-4 col-sm-6 product-item" data-category="@p.Category?.CategoryName">
-                            <div class="card product-card h-100 shadow-sm" onclick="addToCart(@p.ProductId, '@p.Name', @p.Price, @p.StockQuantity)">
+                            <div class="card product-card h-100 shadow-sm" onclick="addToCart(@p.ProductId, '@p.Name', @p.Price, @p.StockQuantity, @p.WeightPerUnit)">
                                 <div class="img-container text-success">
                                     <i class="bi bi-box-seam"></i>
                                     <span class="stock-badge text-@(p.StockQuantity < 10 ? "danger" : "muted")">คงเหลือ: @p.StockQuantity</span>
@@ -137,6 +137,9 @@
                             <span>ส่วนลดโปรโมชั่น</span>
                             <span id="discount-amount">- ฿ 0.00</span>
                         </div>
+                        
+                        <div id="freebie-area" class="d-none bg-success bg-opacity-10 p-2 rounded mb-2 border border-success border-opacity-25">
+                            </div>
                     </div>
 
                     <div class="d-flex justify-content-between mb-3 border-top pt-2">
@@ -269,7 +272,7 @@
             toast.show();
         }
 
-        function addToCart(id, name, price, maxStock) {
+        function addToCart(id, name, price, maxStock, weight) {
             let existingItem = cart.find(item => item.id === id);
             if (existingItem) {
                 if (existingItem.qty < maxStock) {
@@ -279,7 +282,7 @@
                     showToast("สินค้าในสต็อกไม่เพียงพอ!", "danger");
                 }
             } else {
-                cart.push({ id: id, name: name, price: price, qty: 1, maxStock: maxStock });
+                cart.push({ id: id, name: name, price: price, qty: 1, maxStock: maxStock, weight: weight });
                 showToast(`เพิ่ม ${name} ลงตะกร้า`);
             }
             renderCart();
@@ -305,17 +308,21 @@
             if (cart.length === 0) {
                 container.innerHTML = `<div class="text-center mt-5 opacity-25"><i class="bi bi-cart-x fs-1"></i><br>ตะกร้าว่าง</div>`;
                 subTotalEl.innerText = "฿ 0.00"; discountEl.innerText = "- ฿ 0.00"; netTotalEl.innerText = "฿ 0.00";
+                document.getElementById("freebie-area").classList.add("d-none"); // ซ่อนของแถม
                 btnCheckout.disabled = true; countBadge.innerText = "0"; return;
             }
 
             let html = "";
             let totalAmount = 0;
             let totalQty = 0;
+            let totalWeight = 0;
 
             cart.forEach(item => {
                 let itemTotal = item.price * item.qty;
                 totalAmount += itemTotal;
                 totalQty += item.qty;
+                totalWeight += (item.weight * item.qty);
+                
                 html += `
                 <div class="card mb-2 border-0 bg-light animate__animated animate__fadeIn">
                     <div class="card-body p-2 d-flex justify-content-between align-items-center">
@@ -336,20 +343,66 @@
             container.innerHTML = html;
             countBadge.innerText = totalQty;
 
-            // Promo Logic
+            // คำนวณส่วนลดโปรโมชั่น
             finalDiscount = 0;
+            let freebiesHtml = "";
+            let hasFreebie = false;
+
             promos.forEach(p => {
-                let isMatch = (p.ConditionType === "MinAmount" && totalAmount >= p.ConditionValue) || 
-                              (p.ConditionType === "MinQuantity" && totalQty >= p.ConditionValue);
-                if(isMatch) {
-                    let calcDisc = p.RewardType === "DiscountBaht" ? p.RewardValue : totalAmount * (p.RewardValue / 100);
-                    if(calcDisc > finalDiscount) finalDiscount = calcDisc;
+                let isMatch = false;
+                
+                // เช็คว่าผ่านเงื่อนไขไหม?
+                if (p.ConditionType === "MinAmount" && totalAmount >= p.ConditionValue) isMatch = true;
+                if (p.ConditionType === "MinQuantity" && totalQty >= p.ConditionValue) isMatch = true;
+                if (p.ConditionType === "MinWeight" && totalWeight >= p.ConditionValue) isMatch = true;
+
+                if (isMatch) {
+                    // ถ้าเป็นส่วนลดเงินสด/เปอร์เซ็นต์
+                    if (p.RewardType === "DiscountBaht") {
+                        if (p.RewardValue > finalDiscount) finalDiscount = p.RewardValue;
+                    } 
+                    else if (p.RewardType === "DiscountPercent") {
+                        let calcDisc = totalAmount * (p.RewardValue / 100);
+                        if (calcDisc > finalDiscount) finalDiscount = calcDisc;
+                    }
+                    // ถ้าเป็นของแถม หรือ ส่งฟรี
+                    else if (p.RewardType === "FreeShipping") {
+                        hasFreebie = true;
+                        freebiesHtml += `<div class="text-primary small fw-bold mb-1"><i class="bi bi-truck me-1"></i> ${p.RewardItemName || 'จัดส่งฟรี'}</div>`;
+                    }
+                    else if (p.RewardType === "FreeItem") {
+                        hasFreebie = true;
+                        freebiesHtml += `<div class="text-success small fw-bold"><i class="bi bi-gift-fill me-1"></i> ${p.RewardItemName || 'แถมฟรีสินค้า'}</div>`;
+                    }
                 }
             });
 
-            let netTotal = totalAmount - finalDiscount;
+            let freebieArea = document.getElementById("freebie-area");
+            if(hasFreebie) {
+                freebieArea.innerHTML = freebiesHtml;
+                freebieArea.classList.remove("d-none");
+            } else {
+                freebieArea.innerHTML = "";
+                freebieArea.classList.add("d-none");
+            }
+
+            let exactNetTotal = totalAmount - finalDiscount;
+            
+            // ทริคของโปรแกรมเมอร์: คูณ 4 -> ปัดเศษทิ้งตัวทศนิยม -> หาร 4 จะได้สเต็ป 0.25 เป๊ะๆ
+            let netTotal = Math.round(exactNetTotal * 4) / 4; 
+            
+            // นำส่วนต่างของการปัดเศษไปบวกรวมใน Discount เพื่อให้ยอดใน Database ตรงกับหน้าเว็บ
+            finalDiscount += (exactNetTotal - netTotal);
+
             subTotalEl.innerText = "฿ " + totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2});
-            discountEl.innerText = "- ฿ " + finalDiscount.toLocaleString('en-US', {minimumFractionDigits: 2});
+            
+            // แสดงผลส่วนลด/ปัดเศษ (ถ้าติดลบแปลว่าเป็นการปัดเศษขึ้น)
+            if (finalDiscount < 0) {
+                discountEl.innerText = "+ ฿ " + Math.abs(finalDiscount).toLocaleString('en-US', {minimumFractionDigits: 2});
+            } else {
+                discountEl.innerText = "- ฿ " + finalDiscount.toLocaleString('en-US', {minimumFractionDigits: 2});
+            }
+
             netTotalEl.innerText = "฿ " + netTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
             btnCheckout.disabled = false;
         }

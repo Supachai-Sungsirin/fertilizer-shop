@@ -18,4 +18,6 @@ public partial class Promotion
     public decimal RewardValue { get; set; }
 
     public bool? IsActive { get; set; }
+
+    public string? RewardItemName { get; set; }
 }

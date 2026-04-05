@@ -34,10 +34,56 @@
                 </div>
             </div>
     
-            <div class="card shadow-sm border-0 bg-success text-white" style="border-radius: 15px;">
-                <div class="card-body p-4 text-center">
-                    <h5 class="fw-bold"><i class="bi bi-gift-fill"></i> สิทธิพิเศษ!</h5>
-                    <p class="small mb-0 opacity-75">สะสมครบ 1,000 แต้ม รับส่วนลด 100 บาท ในการซื้อครั้งถัดไป</p>
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 15px; overflow: hidden;">
+                <div class="card-header bg-success text-white text-center py-3 border-0">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-gift-fill"></i> สิทธิพิเศษสำหรับคุณ</h5>
+                </div>
+                <div class="card-body p-4 bg-white border border-top-0 border-success border-opacity-25" style="border-radius: 0 0 15px 15px;">
+                    
+                    <div class="mb-4">
+                        <p class="small fw-bold text-success mb-1">🎁 แลกแต้มเป็นส่วนลด</p>
+                        <p class="small text-muted mb-0">สะสมครบ 1,000 แต้ม รับส่วนลด 100 บาท ในการซื้อครั้งถัดไป</p>
+                    </div>
+
+                    <hr class="border-secondary opacity-25">
+
+                    <div>
+                        <p class="small fw-bold text-primary mb-2">🌬️ แจกฟรี! พัดลม 1 เครื่อง</p>
+                        <p class="small text-muted mb-3">เมื่อมียอดซื้อสะสมตลอดชีพครบ 5,000 กก. (5 ตัน)</p>
+                        
+                        @{
+                            // คำนวณเปอร์เซ็นต์ความคืบหน้า
+                            decimal targetWeight = 5000;
+                            decimal currentWeight = Model.TotalWeightBought;
+                            decimal progressPercent = (currentWeight / targetWeight) * 100;
+                            if (progressPercent > 100) progressPercent = 100; // ล็อกไว้ไม่ให้หลอดทะลุ
+                        }
+
+                        @if(currentWeight >= targetWeight)
+                        {
+                            <div class="alert alert-warning border-warning shadow-sm text-center mb-0 p-3" style="border-radius: 12px;">
+                                <h6 class="fw-bold text-dark mb-1">🎉 ยินดีด้วย! คุณบรรลุเป้าหมายแล้ว</h6>
+                                <p class="small text-dark mb-0">กรุณาแจ้งพนักงานหน้าร้าน เพื่อรับ <strong>พัดลมฟรี 1 เครื่อง!</strong> ได้เลยครับ</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="progress mb-2 shadow-sm" style="height: 14px; border-radius: 10px; background-color: #e2e8f0;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                                     role="progressbar" 
+                                     style="width: @progressPercent%" 
+                                     aria-valuenow="@currentWeight" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="@targetWeight">
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between small">
+                                <span class="text-muted">ปัจจุบัน: @currentWeight.ToString("N0") กก.</span>
+                                <span class="text-primary fw-bold">เป้าหมาย: 5,000 กก.</span>
+                            </div>
+                        }
+                    </div>
+
                 </div>
             </div>
         </div>

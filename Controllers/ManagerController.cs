@@ -80,6 +80,7 @@ namespace FertilizerShop.Controllers
                     ConditionValue = data.ConditionValue,
                     RewardType = data.RewardType,
                     RewardValue = data.RewardValue,
+                    RewardItemName = data.RewardItemName,
                     IsActive = true
                 };
 

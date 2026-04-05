@@ -104,11 +104,15 @@
                                         else if(p.ConditionType == "MinQuantity") { 
                                             <span>ซื้อครบ <strong>@p.ConditionValue.ToString("N0")</strong> ชิ้น</span> 
                                         }
+                                        else if(p.ConditionType == "MinWeight") { 
+                                            <span>น้ำหนักครบ <strong>@p.ConditionValue.ToString("N0")</strong> กก.</span> 
+                                        }
                                         else { 
                                             <span>@p.ConditionType: @p.ConditionValue</span> 
                                         }
                                     </div>
                                 </td>
+                                
                                 <td>
                                     <div class="reward-text">
                                         @if(p.RewardType == "DiscountBaht") { 
@@ -116,6 +120,12 @@
                                         }
                                         else if(p.RewardType == "DiscountPercent") { 
                                             <span>-@p.RewardValue.ToString("N0") <small>%</small></span> 
+                                        }
+                                        else if(p.RewardType == "FreeShipping") { 
+                                            <span class="text-primary fs-6"><i class="bi bi-truck"></i> @(string.IsNullOrEmpty(p.RewardItemName) ? "จัดส่งฟรี" : p.RewardItemName)</span> 
+                                        }
+                                        else if(p.RewardType == "FreeItem") { 
+                                            <span class="text-success fs-6"><i class="bi bi-gift-fill"></i> @(string.IsNullOrEmpty(p.RewardItemName) ? "แถมสินค้าฟรี" : p.RewardItemName)</span> 
                                         }
                                         else { 
                                             <span>@p.RewardType: @p.RewardValue</span> 
