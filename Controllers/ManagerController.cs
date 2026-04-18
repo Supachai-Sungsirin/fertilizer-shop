@@ -19,45 +19,38 @@ namespace FertilizerShop.Controllers
             _db = db;
         }
 
-        public IActionResult Index()
+public IActionResult Index()
         {
             var today = DateTime.Today;
-            var todaysOrders = _db.Orders.Where(o => o.OrderDate != null && o.OrderDate.Value.Date == today).ToList();
 
-            // ดึงสินค้าสต็อกน้อยกว่าหรือเท่ากับ 10
-            var lowStock = _db.Products
-                              .Include(p => p.Category)
-                              .Where(p => p.StockQuantity <= 10)
-                              .OrderBy(p => p.StockQuantity)
-                              .ToList();
-
-            // ดึงสินค้าที่กำลังจะหมดอายุภายใน 30 วันข้างหน้า
-            var todayDateOnly = DateOnly.FromDateTime(today);
-            var next30Days = todayDateOnly.AddDays(30);
-
-            var expiring = _db.Products
-                              .Include(p => p.Category)
-                              .Where(p => p.ExpiryDate != null && p.ExpiryDate >= todayDateOnly && p.ExpiryDate <= next30Days)
-                              .OrderBy(p => p.ExpiryDate)
-                              .ToList();
-
-            // แพ็คข้อมูลใส่ ViewModel
-            var model = new ManagerDashboardViewModel
-            {
-                TodaySales = todaysOrders.Sum(o => o.TotalAmount),
-                TodayOrdersCount = todaysOrders.Count,
-                LowStockProducts = lowStock,
-                ExpiringProducts = expiring
+            var viewModel = new ManagerDashboardViewModel
+            {   
+                // ดึงข้อมูลยอดขายและจำนวนออเดอร์ของวันนี้
+                TodaySales = _db.Orders
+                               .Where(o => o.OrderDate.HasValue && o.OrderDate.Value.Date == today)
+                               .Sum(o => (decimal?)o.NetAmount) ?? 0m,
+                // นับจำนวนออเดอร์ที่เกิดขึ้นในวันนี้
+                TodayOrdersCount = _db.Orders
+                                     .Count(o => o.OrderDate.HasValue && o.OrderDate.Value.Date == today),
+                // ดึงข้อมูลสินค้าที่มีสต็อกต่ำกว่า 5 ชิ้น เรียงจากน้อยไปมาก และจำกัดแสดงแค่ 5 รายการ
+                LowStockProducts = _db.Products
+                                     .Where(p => p.StockQuantity <= 5)
+                                     .OrderBy(p => p.StockQuantity)
+                                     .Take(5).ToList(),
+                // ในหน้า Manager เราไม่เอา ExpiringProducts แล้ว แต่เอาออกเพื่อไม่ให้กระทบ ViewModel เดิม
+                ExpiringProducts = new List<Product>() 
             };
 
-            return View(model);
-        }
+            ViewBag.PendingClaimsCount = _db.Claims.Count(c => c.Status == "Pending");
+            ViewBag.PendingPOCount = _db.Purchaseorders.Count(p => p.Status == "Pending");
+            ViewBag.ActivePromotions = _db.Promotions.Where(p => p.IsActive == true).Take(5).ToList();
 
+            return View(viewModel);
+        }
         // --- ส่วนการจัดการโปรโมชั่น (Promotions) ---
         public IActionResult Promotions()
         {
             // ดึงโปรโมชั่นทั้งหมดมาแสดง (เรียงจากวันที่สร้างล่าสุด หรือ ID ล่าสุด)
-            // หมายเหตุ: แก้ไขชื่อ Property ให้ตรงกับ Model Promotion ของคุณนะครับ
             var promotions = _db.Promotions.ToList();
             return View(promotions);
         }
@@ -115,7 +108,6 @@ namespace FertilizerShop.Controllers
         }
 
         // --- ส่วนการตรวจสอบประวัติการขาย (Sales History) ---
-
         public IActionResult SalesHistory()
         {
             var orders = _db.Orders
@@ -147,7 +139,6 @@ namespace FertilizerShop.Controllers
         public IActionResult CreatePO()
         {
             // ดึงรายชื่อ Supplier มาทำ Dropdown
-            // หมายเหตุ: เช็คชื่อ Property ของ Model Supplier ให้ตรงกับของคุณด้วยนะครับ
             ViewBag.Suppliers = new SelectList(_db.Suppliers, "SupplierId", "Name");
 
             // ดึงรายชื่อสินค้าทั้งหมดส่งไปให้ JavaScript วาด Dropdown
@@ -214,8 +205,6 @@ namespace FertilizerShop.Controllers
         public IActionResult POHistory()
         {
             // ดึงใบสั่งซื้อทั้งหมด เรียงจากล่าสุดขึ้นก่อน
-            // *หมายเหตุ: เช็คชื่อ Navigation Property ใน Models/Purchaseorder.cs ของคุณด้วยนะครับ
-            // มันอาจจะชื่อ Supplier หรือ Manager / ManagerNavigation
             var pos = _db.Purchaseorders
                          .Include(p => p.Supplier)
                          .OrderByDescending(p => p.OrderDate)

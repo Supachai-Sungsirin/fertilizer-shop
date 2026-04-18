@@ -4,32 +4,99 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml"; 
 }
 
-<div class="container-fluid mt-4">
+<style>
+    .claim-table thead th {
+        background-color: #f8fafc;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        font-weight: 700;
+        color: #475569;
+        padding: 15px;
+        border: none;
+    }
+
+    .claim-table tbody td {
+        padding: 16px 15px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .bg-pending { background-color: #fffbeb; color: #92400e; border: 1px solid #fef3c7; }
+    .bg-approved { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .bg-rejected { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+    .action-btn {
+        width: 35px;
+        height: 35px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .customer-info-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .avatar-placeholder {
+        width: 35px;
+        height: 35px;
+        background-color: #e2e8f0;
+        color: #64748b;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+</style>
+
+<div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-dark"><i class="bi bi-shield-exclamation text-danger"></i> จัดการคำร้องเคลมสินค้า</h3>
+        <div>
+            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-shield-exclamation text-danger me-2"></i> จัดการคำร้องเคลมสินค้า</h3>
+            <p class="text-muted small mb-0">ตรวจสอบและอนุมัติรายการแจ้งความเสียหายของสินค้าจากลูกค้า</p>
+        </div>
     </div>
 
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-            <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4 animate__animated animate__fadeIn" style="border-radius: 12px;">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    <div class="card shadow-sm border-0" style="border-radius: 15px;">
+    <div class="card shadow-sm border-0" style="border-radius: 20px; overflow: hidden;">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light text-muted">
+                <table class="table table-hover align-middle mb-0 claim-table">
+                    <thead>
                         <tr>
-                            <th class="px-4 py-3">วันที่แจ้ง</th>
-                            <th>เลขที่บิล</th>
-                            <th>ข้อมูลลูกค้า</th>
-                            <th>สินค้าที่เคลม</th>
+                            <th class="ps-4">ข้อมูลการแจ้ง</th>
+                            <th>ลูกค้า</th>
+                            <th>รายการสินค้า</th>
                             <th width="25%">ปัญหาที่พบ</th>
                             <th class="text-center">สถานะ</th>
-                            <th class="text-center">จัดการ</th>
+                            <th class="text-center pe-4">จัดการ</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -38,52 +105,68 @@
                             foreach (var item in Model)
                             {
                                 <tr>
-                                    <td class="px-4">@item.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td class="fw-bold text-danger">@item.Order?.ReceiptNo</td>
-                                    <td>
-                                        <div class="fw-bold">@item.Customer?.FullName</div>
-                                        <div class="small text-muted">@item.Customer?.Phone</div>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark">#@item.Order?.ReceiptNo</div>
+                                        <small class="text-muted"><i class="bi bi-clock me-1"></i>@item.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</small>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">SKU: @item.Product?.Sku</span><br />
-                                        @item.Product?.Name
+                                        <div class="customer-info-box">
+                                            <div class="avatar-placeholder small">@item.Customer?.FullName?.Substring(0, 1)</div>
+                                            <div>
+                                                <div class="fw-bold">@item.Customer?.FullName</div>
+                                                <div class="text-muted small">@item.Customer?.Phone</div>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td><small>@item.ProblemDescription</small></td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="badge bg-light text-secondary border align-self-start mb-1" style="font-size: 0.7rem;">@item.Product?.Sku</span>
+                                            <span class="text-dark fw-semibold small">@item.Product?.Name</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="p-2 bg-light rounded-3 small text-muted border-start border-3 border-danger">
+                                            @item.ProblemDescription
+                                        </div>
+                                    </td>
                                     <td class="text-center">
                                         @if (item.Status == "Pending")
                                         {
-                                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> รอดำเนินการ</span>
+                                            <span class="status-badge bg-pending"><i class="bi bi-hourglass-split"></i> รอดำเนินการ</span>
                                         }
                                         else if (item.Status == "Approved")
                                         {
-                                            <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> อนุมัติเคลม</span>
+                                            <span class="status-badge bg-approved"><i class="bi bi-check-circle-fill"></i> อนุมัติเคลม</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-danger"><i class="bi bi-x-circle-fill"></i> ปฏิเสธ</span>
+                                            <span class="status-badge bg-rejected"><i class="bi bi-x-circle-fill"></i> ปฏิเสธ</span>
                                         }
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center pe-4">
                                         @if (item.Status == "Pending")
                                         {
-                                            <form asp-action="UpdateClaimStatus" method="post" class="d-inline">
-                                                <input type="hidden" name="claimId" value="@item.ClaimId" />
-                                                <input type="hidden" name="newStatus" value="Approved" />
-                                                <button type="submit" class="btn btn-sm btn-success shadow-sm" title="อนุมัติ" onclick="return confirm('ยืนยันการอนุมัติเคลมสินค้านี้ใช่หรือไม่?');">
-                                                    <i class="bi bi-check-lg"></i>
-                                                </button>
-                                            </form>
-                                            <form asp-action="UpdateClaimStatus" method="post" class="d-inline">
-                                                <input type="hidden" name="claimId" value="@item.ClaimId" />
-                                                <input type="hidden" name="newStatus" value="Rejected" />
-                                                <button type="submit" class="btn btn-sm btn-danger shadow-sm" title="ปฏิเสธ" onclick="return confirm('ยืนยันการปฏิเสธเคลมสินค้านี้ใช่หรือไม่?');">
-                                                    <i class="bi bi-x-lg"></i>
-                                                </button>
-                                            </form>
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <form asp-action="UpdateClaimStatus" method="post">
+                                                    <input type="hidden" name="claimId" value="@item.ClaimId" />
+                                                    <input type="hidden" name="newStatus" value="Approved" />
+                                                    <button type="button" class="btn btn-success action-btn approve-claim-btn" title="อนุมัติการเคลม">
+                                                        <i class="bi bi-check-lg"></i>
+                                                    </button>
+                                                </form>
+                                                
+                                                <form asp-action="UpdateClaimStatus" method="post">
+                                                    <input type="hidden" name="claimId" value="@item.ClaimId" />
+                                                    <input type="hidden" name="newStatus" value="Rejected" />
+                                                    <button type="button" class="btn btn-danger action-btn reject-claim-btn" title="ปฏิเสธการเคลม">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         }
                                         else
                                         {
-                                            <span class="text-muted small">- ดำเนินการแล้ว -</span>
+                                            <span class="text-muted small fst-italic">ดำเนินการแล้ว</span>
                                         }
                                     </td>
                                 </tr>
@@ -92,9 +175,11 @@
                         else
                         {
                             <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
-                                    <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
-                                    ยังไม่มีคำร้องแจ้งเคลมสินค้า
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="py-4">
+                                        <i class="bi bi-inbox display-1 text-light"></i>
+                                        <p class="text-muted mt-3">ยังไม่มีคำร้องแจ้งเคลมสินค้าในระบบ</p>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -104,3 +189,55 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        // --- จัดการปุ่ม "อนุมัติเคลม" ---
+        const approveBtns = document.querySelectorAll('.approve-claim-btn');
+        approveBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: 'ยืนยันการอนุมัติเคลม?',
+                    text: 'ระบบจะส่งสถานะการอนุมัติไปยังลูกค้า คุณต้องการดำเนินการต่อใช่หรือไม่?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'ยืนยันการอนุมัติ',
+                    cancelButtonText: 'ยกเลิก',
+                    borderRadius: '15px'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        // --- จัดการปุ่ม "ปฏิเสธเคลม" ---
+        const rejectBtns = document.querySelectorAll('.reject-claim-btn');
+        rejectBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: 'ยืนยันการปฏิเสธเคลม?',
+                    text: 'คำร้องจะถูกปัดตกทันที คุณแน่ใจใช่หรือไม่?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'ยืนยันการปฏิเสธ',
+                    cancelButtonText: 'ยกเลิก',
+                    borderRadius: '15px'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>

@@ -145,18 +145,22 @@
                                 </td>
                                 <td class="text-center pe-4">
                                     <div class="d-flex justify-content-center gap-2">
-                                        <a href="@Url.Action("TogglePromotion", "Manager", new { id = p.PromotionId })" 
-                                           class="btn btn-action-promo @(p.IsActive == true ? "btn-outline-warning" : "btn-outline-success")" 
+                                        <button type="button" 
+                                           data-url="@Url.Action("TogglePromotion", "Manager", new { id = p.PromotionId })"
+                                           data-name="@p.Name"
+                                           data-action="@(p.IsActive == true ? "พักแคมเปญ" : "เปิดแคมเปญ")"
+                                           class="btn btn-action-promo @(p.IsActive == true ? "btn-outline-warning" : "btn-outline-success") toggle-promo-btn" 
                                            title="@(p.IsActive == true ? "พักแคมเปญ" : "เปิดแคมเปญ")">
                                             <i class="bi @(p.IsActive == true ? "bi-pause-fill" : "bi-play-fill") fs-5"></i>
-                                        </a>
+                                        </button>
 
-                                        <a href="@Url.Action("DeletePromotion", "Manager", new { id = p.PromotionId })" 
-                                           class="btn btn-action-promo btn-outline-danger" 
-                                           onclick="return confirm('ยืนยันการลบโปรโมชั่นนี้? ข้อมูลการขายในอดีตที่ใช้โปรโมชั่นนี้จะไม่หายไป');" 
+                                        <button type="button" 
+                                           data-url="@Url.Action("DeletePromotion", "Manager", new { id = p.PromotionId })"
+                                           data-name="@p.Name"
+                                           class="btn btn-action-promo btn-outline-danger delete-promo-btn" 
                                            title="ลบถาวร">
                                             <i class="bi bi-trash-fill"></i>
-                                        </a>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -179,3 +183,64 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        // --- 1. จัดการปุ่มสลับสถานะโปรโมชั่น (Toggle) ---
+        const toggleButtons = document.querySelectorAll('.toggle-promo-btn');
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const url = this.getAttribute('data-url');
+                const promoName = this.getAttribute('data-name');
+                const actionType = this.getAttribute('data-action');
+                
+                // สลับสีและไอคอนตามสถานะ
+                const isPause = actionType === "พักแคมเปญ";
+                const confirmColor = isPause ? '#ffc107' : '#1d976c'; // สีเหลือง หรือ สีเขียว
+                const alertIcon = isPause ? 'warning' : 'question';
+                const btnIcon = isPause ? 'bi-pause-fill' : 'bi-play-fill';
+
+                Swal.fire({
+                    title: `ยืนยันการ${actionType}?`,
+                    html: `คุณต้องการ <strong>${actionType}</strong> แคมเปญ <br><span class='text-primary fs-5'>[${promoName}]</span> ใช่หรือไม่?`,
+                    icon: alertIcon,
+                    showCancelButton: true,
+                    confirmButtonColor: confirmColor,
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: `<i class="bi ${btnIcon}"></i> ยืนยัน`,
+                    cancelButtonText: 'ยกเลิก'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
+
+        // --- 2. จัดการปุ่มลบโปรโมชั่น (Delete) ---
+        const deleteButtons = document.querySelectorAll('.delete-promo-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const url = this.getAttribute('data-url');
+                const promoName = this.getAttribute('data-name');
+
+                Swal.fire({
+                    title: 'ยืนยันการลบแคมเปญ?',
+                    html: `คุณต้องการลบแคมเปญ <strong>[${promoName}]</strong> ใช่หรือไม่?<br><span class='text-danger small'>ประวัติการขายในอดีตที่ใช้โปรโมชั่นนี้จะไม่ได้รับผลกระทบ</span>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545', // สีแดง
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="bi bi-trash-fill"></i> ยืนยันการลบ',
+                    cancelButtonText: 'ยกเลิก'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
+
+    });
+</script>

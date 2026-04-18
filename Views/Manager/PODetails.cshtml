@@ -146,10 +146,10 @@
                 <div class="alert alert-info border-0 bg-light p-4 shadow-sm" style="border-radius: 12px; border-left: 5px solid #0dcaf0 !important;">
                     <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-box-seam-fill me-2"></i> ขั้นตอนการตรวจรับสินค้า (Inbound)</h6>
                     <p class="small text-muted mb-3">กรุณาตรวจสอบสภาพสินค้าและจำนวนที่ได้รับจริงให้ตรงกับรายการสั่งซื้อ เมื่อตรวจสอบเรียบร้อยแล้ว กดยืนยันเพื่อนำสินค้าเข้าสู่คลังสินค้าของร้าน</p>
-                    <form asp-action="MarkPOAsReceived" method="post">
+                    <form id="receive-po-form" asp-action="MarkPOAsReceived" method="post">
                         <input type="hidden" name="id" value="@Model.PoId" />
-                        <button type="submit" class="btn btn-dark fw-bold px-4 rounded-3 shadow-sm" 
-                                onclick="return confirm('ยืนยันการรับสินค้าเข้าสต็อก? ระบบจะทำการเพิ่มจำนวนสินค้าโดยอัตโนมัติ');">
+                        <button type="button" class="btn btn-dark fw-bold px-4 rounded-3 shadow-sm" 
+                                onclick="confirmReceive()">
                             <i class="bi bi-check-lg me-1"></i> ยืนยันการรับสินค้าเข้าสต็อก
                         </button>
                     </form>
@@ -180,6 +180,24 @@
     </div>
 </div>
 
-<div class="text-center no-print pb-5">
-    <p class="text-muted small"><i class="bi bi-shield-check me-1"></i> เอกสารอิเล็กทรอนิกส์ฉบับนี้ถูกสร้างขึ้นโดยระบบบริหารจัดการร้านชาติชายฟาร์ม</p>
-</div>
+<script>
+    function confirmReceive() {
+        Swal.fire({
+            title: 'ยืนยันการรับสินค้า?',
+            html: 'คุณแน่ใจหรือไม่ว่าได้รับสินค้าครบถ้วนแล้ว?<br><span class="text-success small">*ระบบจะทำการเพิ่มจำนวนสินค้าเข้าคลังโดยอัตโนมัติ</span>',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#212529',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="bi bi-check-lg"></i> ยืนยันรับสินค้า',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('receive-po-form').submit();
+            }
+        });
+    }
+</script>
+
+
+

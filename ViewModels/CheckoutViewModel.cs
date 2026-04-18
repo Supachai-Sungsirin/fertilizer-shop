@@ -8,7 +8,6 @@ namespace FertilizerShop.ViewModels
         public string PaymentMethod { get; set; }
         public decimal DiscountAmount { get; set; }
         
-        // 🌟 เพิ่มบรรทัดนี้ เพื่อรับเบอร์ลูกค้า
         public string? CustomerPhone { get; set; }
     }
 }

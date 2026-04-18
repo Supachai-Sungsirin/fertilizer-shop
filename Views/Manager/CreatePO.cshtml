@@ -150,9 +150,18 @@
         let qty = parseInt(qtyInput.value);
         let cost = parseFloat(costInput.value);
         
-        if (!pSelect.value) { alert('กรุณาเลือกสินค้า'); return; }
-        if (isNaN(qty) || qty <= 0) { alert('กรุณาระบุจำนวนให้ถูกต้อง'); return; }
-        if (isNaN(cost) || cost < 0) { alert('กรุณาระบุต้นทุนให้ถูกต้อง'); return; }
+        if (!pSelect.value) { 
+            Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณาเลือกสินค้า', confirmButtonColor: '#f8b425' }); 
+            return; 
+        }
+        if (isNaN(qty) || qty <= 0) { 
+            Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาระบุจำนวนให้ถูกต้อง', confirmButtonColor: '#f8b425' }); 
+            return; 
+        }
+        if (isNaN(cost) || cost < 0) { 
+            Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาระบุต้นทุนให้ถูกต้อง', confirmButtonColor: '#f8b425' }); 
+            return; 
+        }
 
         let pId = parseInt(pSelect.value);
         let pName = pSelect.options[pSelect.selectedIndex].getAttribute('data-name');
@@ -222,35 +231,68 @@
 
     function savePO() {
         let supplierId = document.getElementById('supplier-id').value;
-        if (!supplierId) { alert('กรุณาเลือกผู้จัดจำหน่าย (Supplier)'); return; }
-        if (poItems.length === 0) { alert('กรุณาเพิ่มสินค้าลงในบิลอย่างน้อย 1 รายการ'); return; }
-
-        if (confirm('คุณตรวจสอบความถูกต้องของรายการทั้งหมดแล้วใช่หรือไม่?')) {
-            let btn = document.getElementById('btn-save');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังบันทึกข้อมูล...';
-
-            let payload = {
-                SupplierId: parseInt(supplierId),
-                Items: poItems
-            };
-
-            fetch('/Manager/CreatePO', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('สร้างใบสั่งซื้อสำเร็จ! เลขที่ใบสั่งซื้อ: PO-' + data.poId);
-                    window.location.href = '/Manager/POHistory';
-                } else {
-                    alert('Error: ' + data.message);
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-check-all fs-4 me-2"></i> ยืนยันการออกใบสั่งซื้อ';
-                }
-            });
+        
+        if (!supplierId) { 
+            Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณาเลือกผู้จัดจำหน่าย (Supplier)', confirmButtonColor: '#f8b425' }); 
+            return; 
         }
+        if (poItems.length === 0) { 
+            Swal.fire({ icon: 'warning', title: 'ใบสั่งซื้อว่างเปล่า', text: 'กรุณาเพิ่มสินค้าลงในบิลอย่างน้อย 1 รายการ', confirmButtonColor: '#f8b425' }); 
+            return; 
+        }
+
+        Swal.fire({
+            title: 'ยืนยันการออกใบสั่งซื้อ?',
+            text: "คุณตรวจสอบความถูกต้องของรายการทั้งหมดแล้วใช่หรือไม่?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#1d976c',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="bi bi-check-all"></i> ยืนยันบันทึก',
+            cancelButtonText: 'ตรวจสอบอีกครั้ง'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // ถ้ากดยืนยัน ค่อยทำงานส่วนนี้
+                let btn = document.getElementById('btn-save');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังบันทึกข้อมูล...';
+
+                let payload = {
+                    SupplierId: parseInt(supplierId),
+                    Items: poItems
+                };
+
+                fetch('/Manager/CreatePO', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // แจ้งเตือนสำเร็จ
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'สร้างใบสั่งซื้อสำเร็จ!',
+                            text: 'เลขที่ใบสั่งซื้อ: PO-' + data.poId,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = '/Manager/POHistory';
+                        });
+                    } else {
+                        // แจ้งเตือน Error
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'เกิดข้อผิดพลาด',
+                            text: data.message,
+                            confirmButtonColor: '#dc3545'
+                        });
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-check-all fs-4 me-2"></i> ยืนยันการออกใบสั่งซื้อ';
+                    }
+                });
+            }
+        });
     }
 </script>
