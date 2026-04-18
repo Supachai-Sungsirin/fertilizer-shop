@@ -11,7 +11,6 @@ namespace FertilizerShop.ViewModels
         public decimal TotalWeightBought { get; set; }
         public DateTime? MemberSince { get; set; }
         
-        // ลิสต์ประวัติการสั่งซื้อของลูกค้ารายนี้
         public List<Order> OrderHistory { get; set; }
     }
 }

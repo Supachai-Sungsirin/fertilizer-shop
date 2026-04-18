@@ -69,7 +69,6 @@ namespace FertilizerShop.Controllers
                 ViewBag.Error = "รหัสพนักงาน หรือ รหัสผ่าน ไม่ถูกต้อง";
             }
 
-            // ถ้าลืมกรอกข้อมูล หรือรหัสผิด ให้ส่ง ViewModel กลับไปแสดง Error ที่หน้าเดิม
             return View(data);
         }
 

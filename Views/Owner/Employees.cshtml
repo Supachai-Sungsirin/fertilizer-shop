@@ -160,12 +160,14 @@
                                     }
                                     else
                                     {
-                                        <a href="@Url.Action("ToggleStatus", "Owner", new { id = user.UserId })"
-                                           class="btn btn-action @(user.IsActive == true ? "btn-outline-danger" : "btn-outline-success")"
-                                           onclick="return confirm('ยืนยันการเปลี่ยนสถานะการใช้งานของพนักงานท่านนี้?');"
+                                        <button type="button" 
+                                           data-url="@Url.Action("ToggleStatus", "Owner", new { id = user.UserId })"
+                                           data-name="@user.FirstName @user.LastName"
+                                           data-action="@(user.IsActive == true ? "ระงับการใช้งาน" : "เปิดใช้งาน")"
+                                           class="btn btn-action @(user.IsActive == true ? "btn-outline-danger" : "btn-outline-success") toggle-status-btn"
                                            title="@(user.IsActive == true ? "ระงับการใช้งาน" : "เปิดใช้งาน")">
                                             <i class="bi @(user.IsActive == true ? "bi-person-x-fill" : "bi-person-check-fill")"></i>
-                                        </a>
+                                        </button>
                                     }
                                 </div>
                             </td>
@@ -176,3 +178,41 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // หาปุ่มทั้งหมดที่มีคลาส toggle-status-btn
+        const toggleButtons = document.querySelectorAll('.toggle-status-btn');
+
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                // ดึงข้อมูลที่ซ่อนไว้ในปุ่ม
+                const url = this.getAttribute('data-url');
+                const empName = this.getAttribute('data-name');
+                const actionType = this.getAttribute('data-action');
+                
+                // เช็คว่ากำลังจะ "ระงับ" หรือ "เปิดใช้" เพื่อเปลี่ยนสีและไอคอนป๊อปอัปให้เข้ากัน
+                const isSuspend = actionType === "ระงับการใช้งาน";
+                const confirmColor = isSuspend ? '#dc3545' : '#1d976c'; // แดง หรือ เขียว
+                const alertIcon = isSuspend ? 'warning' : 'question';
+                const btnIcon = isSuspend ? 'bi-person-x-fill' : 'bi-person-check-fill';
+
+                Swal.fire({
+                    title: `ยืนยันการ${actionType}?`,
+                    html: `คุณต้องการ <strong>${actionType}</strong> บัญชีของ <br><span class='text-primary fs-5'>คุณ ${empName}</span> ใช่หรือไม่?`,
+                    icon: alertIcon,
+                    showCancelButton: true,
+                    confirmButtonColor: confirmColor,
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: `<i class="bi ${btnIcon}"></i> ยืนยัน`,
+                    cancelButtonText: 'ยกเลิก'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // ถ้ากดยืนยัน ให้พาวิ่งไปที่ Controller เพื่อสลับสถานะ
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
+    });
+</script>

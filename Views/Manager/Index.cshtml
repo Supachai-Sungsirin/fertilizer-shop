@@ -79,18 +79,46 @@
     /* สีกราเดียนต์ที่ใช้ในร้านชาติชายฟาร์ม */
     .bg-gradient-green { background: linear-gradient(135deg, #1d976c 0%, #167a57 100%); }
     .bg-gradient-blue { background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%); }
+    .bg-gradient-orange { background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%); } /* เพิ่มสีส้มสำหรับการแจ้งเตือน */
     
     .badge-pill-custom {
         padding: 8px 16px;
         font-weight: 700;
         letter-spacing: 0.3px;
     }
+
+    /* จัดการการลิงก์ใน Card */
+    .stretched-link::after {
+        position: absolute;
+        top: 0; right: 0; bottom: 0; left: 0;
+        z-index: 1;
+        content: "";
+    }
+
+    /* สไตล์สำหรับเงื่อนไขโปรโมชั่น */
+    .condition-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background-color: #f1f5f9;
+        color: #475569;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        border: 1px solid #e2e8f0;
+    }
+    .condition-tag i {
+        color: #1d976c;
+    }
+    .condition-tag strong {
+        color: #1e293b;
+    }
 </style>
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
     <div>
-        <h2 class="fw-bold mb-1"><i class="bi bi-speedometer2 text-success me-2"></i> แผงควบคุมภาพรวม</h2>
-        <p class="text-muted mb-0">ยินดีต้อนรับกลับมา, ข้อมูลสรุปประจำวันนี้สำหรับร้านชาติชายฟาร์ม</p>
+        <h2 class="fw-bold mb-1"><i class="bi bi-speedometer2 text-success me-2"></i> แผงควบคุมผู้จัดการ</h2>
+        <p class="text-muted mb-0">ยินดีต้อนรับกลับมา, ข้อมูลและงานที่ต้องดำเนินการประจำวันนี้</p>
     </div>
     <div class="text-md-end">
         <div class="d-inline-flex align-items-center bg-white border rounded-pill px-4 py-2 shadow-sm">
@@ -100,62 +128,77 @@
     </div>
 </div>
 
-<!-- สรุปยอดขายและบิล -->
 <div class="row g-4 mb-5">
-    <div class="col-md-6">
-        <div class="card stat-card bg-gradient-green text-white shadow">
+    <div class="col-md-4">
+        <div class="card stat-card bg-gradient-green text-white shadow h-100">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <p class="text-white-50 mb-2 small fw-bold text-uppercase">ยอดขายรวมวันนี้</p>
-                        <h1 class="display-5 mb-0 fw-bold">฿ @Model.TodaySales.ToString("N2")</h1>
+                        <h2 class="mb-0 fw-bold">฿ @Model.TodaySales.ToString("N2")</h2>
+                        <div class="mt-2 text-white-50 small">จาก @Model.TodayOrdersCount บิล</div>
                     </div>
                     <div class="icon-shape">
-                        <i class="bi bi-currency-dollar fs-2"></i>
+                        <i class="bi bi-currency-dollar fs-3"></i>
                     </div>
                 </div>
-                <div class="mt-4 d-flex align-items-center">
-                    <span class="bg-opacity-20 rounded-pill px-3 py-1 small">
-                        <i class="bi bi-clock-history me-1"></i> อัปเดตล่าสุด: @DateTime.Now.ToString("HH:mm")
-                    </span>
-                </div>
             </div>
+            <a href="@Url.Action("SalesHistory", "Manager")" class="stretched-link"></a>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card stat-card bg-gradient-blue text-white shadow">
+
+    <div class="col-md-4">
+        <div class="card stat-card bg-gradient-orange text-white shadow h-100">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <p class="text-white-50 mb-2 small fw-bold text-uppercase">จำนวนธุรกรรมวันนี้</p>
-                        <h1 class="display-5 mb-0 fw-bold">@Model.TodayOrdersCount <span class="fs-4 fw-normal opacity-75">รายการ</span></h1>
+                        <p class="text-white-50 mb-2 small fw-bold text-uppercase">คำร้องเคลม (รอดำเนินการ)</p>
+                        <h2 class="mb-0 fw-bold">@ViewBag.PendingClaimsCount <span class="fs-5 fw-normal opacity-75">รายการ</span></h2>
+                        <div class="mt-2 text-white-50 small">
+                            @(ViewBag.PendingClaimsCount > 0 ? "มีลูกค้ากำลังรอการอนุมัติเคลม" : "ไม่มีคำร้องเคลมค้างในระบบ")
+                        </div>
                     </div>
                     <div class="icon-shape">
-                        <i class="bi bi-cart-check fs-2"></i>
+                        <i class="bi bi-shield-exclamation fs-3"></i>
                     </div>
                 </div>
-                <div class="mt-4 d-flex align-items-center">
-                    <span class="bg-opacity-20 rounded-pill px-3 py-1 small">
-                        <i class="bi bi-arrow-repeat me-1"></i> ดึงข้อมูลอัตโนมัติ
-                    </span>
+            </div>
+            <a href="@Url.Action("Claims", "Manager")" class="stretched-link"></a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card bg-gradient-blue text-white shadow h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-white-50 mb-2 small fw-bold text-uppercase">ใบสั่งซื้อ (รอรับเข้าคลัง)</p>
+                        <h2 class="mb-0 fw-bold">@ViewBag.PendingPOCount <span class="fs-5 fw-normal opacity-75">ใบสั่งซื้อ</span></h2>
+                        <div class="mt-2 text-white-50 small">
+                            @(ViewBag.PendingPOCount > 0 ? "มีสินค้าที่สั่งซื้อไปแล้วรอการรับเข้า" : "ไม่มีใบสั่งซื้อที่ค้างรับ")
+                        </div>
+                    </div>
+                    <div class="icon-shape">
+                        <i class="bi bi-box-seam fs-3"></i>
+                    </div>
                 </div>
             </div>
+            <a href="@Url.Action("POHistory", "Manager")" class="stretched-link"></a>
         </div>
     </div>
 </div>
 
 <div class="row g-4">
-    <!-- สินค้าสต็อกเหลือน้อย -->
     <div class="col-xl-6">
         <div class="card dashboard-table-card h-100">
             <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center border-0 px-4">
                 <div class="d-flex align-items-center">
                     <div class="bg-danger-subtle p-3 rounded-4 me-3">
-                        <i class="bi bi-box-seam-fill text-danger fs-4"></i>
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-4"></i>
                     </div>
                     <div>
-                        <h5 class="mb-0 fw-bold">วิเคราะห์สต็อกสินค้า</h5>
-                        <p class="text-muted small mb-0">รายการที่ควรสั่งซื้อเพิ่ม</p>
+                        <h5 class="mb-0 fw-bold">การแจ้งเตือนสต็อกสินค้า</h5>
+                        <p class="text-muted small mb-0">รายการสินค้าที่ต้องพิจารณาสั่งซื้อเพิ่ม (PO)</p>
                     </div>
                 </div>
             </div>
@@ -189,7 +232,7 @@
                                         </td>
                                         <td class="text-end pe-4">
                                             <a href="@Url.Action("CreatePO", "Manager")" class="btn btn-sm btn-danger badge-pill-custom rounded-pill shadow-sm">
-                                                เปิด PO ใหม่
+                                                เปิด PO
                                             </a>
                                         </td>
                                     </tr>
@@ -213,71 +256,86 @@
         </div>
     </div>
 
-    <!-- สินค้าใกล้หมดอายุ -->
-    <div class="col-xl-6">
-        <div class="card dashboard-table-card h-100">
-            <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center border-0 px-4">
-                <div class="d-flex align-items-center">
-                    <div class="bg-warning-subtle p-3 rounded-4 me-3">
-                        <i class="bi bi-hourglass-bottom text-warning fs-4"></i>
-                    </div>
-                    <div>
-                        <h5 class="mb-0 fw-bold">การควบคุมคุณภาพ</h5>
-                        <p class="text-muted small mb-0">สินค้าที่กำลังจะหมดอายุ</p>
-                    </div>
+<div class="col-xl-6">
+    <div class="card dashboard-table-card h-100">
+        <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center border-0 px-4">
+            <div class="d-flex align-items-center">
+                <div class="bg-success-subtle p-3 rounded-4 me-3">
+                    <i class="bi bi-megaphone-fill text-success fs-4"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold">แคมเปญโปรโมชั่น</h5>
+                    <p class="text-muted small mb-0">โปรโมชั่นที่กำลังเปิดใช้งานอยู่ในระบบ</p>
                 </div>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th class="ps-4">ข้อมูลสินค้า</th>
-                                <th class="text-end pe-4">สถานะวันหมดอายุ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.ExpiringProducts.Any())
-                            {
-                                foreach (var item in Model.ExpiringProducts)
-                                {
-                                    var daysLeft = (item.ExpiryDate.Value.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days;
-                                    <tr>
-                                        <td class="ps-4">
-                                            <div class="fw-bold text-dark">@item.Name</div>
-                                            <small class="text-muted">ID: @item.Sku</small>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <div class="fw-bold @(daysLeft <= 7 ? "text-danger" : "text-warning")">
-                                                @item.ExpiryDate.Value.ToString("dd MMM yyyy")
-                                            </div>
-                                            <span class="badge @(daysLeft <= 7 ? "bg-danger" : "bg-warning text-dark") rounded-pill">
-                                                อีก @daysLeft วัน
-                                            </span>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">ชื่อโปรโมชั่น</th>
+                            <th>เงื่อนไขการรับสิทธิ์</th>
+                            <th class="text-end pe-4">ส่วนลดที่จะได้รับ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.ActivePromotions != null && ((IEnumerable<FertilizerShop.Models.Promotion>)ViewBag.ActivePromotions).Any())
+                        {
+                            foreach (var promo in (IEnumerable<FertilizerShop.Models.Promotion>)ViewBag.ActivePromotions)
                             {
                                 <tr>
-                                    <td colspan="2" class="text-center py-5">
-                                        <div class="py-4">
-                                            <i class="bi bi-shield-fill-check text-primary display-4"></i>
-                                            <p class="text-muted mt-3 fw-bold">ไม่มีรายการสินค้าหมดอายุเร็วๆ นี้</p>
+                                    <td class="ps-4 fw-bold text-dark">
+                                        @promo.Name
+                                    </td>
+                                    <td>
+                                        <div class="condition-tag">
+                                            <i class="bi bi-info-circle"></i>
+                                            @if(promo.ConditionType == "MinAmount") { 
+                                                <span>ยอดซื้อครบ <strong>@promo.ConditionValue.ToString("N0")</strong> บาท</span> 
+                                            }
+                                            else if(promo.ConditionType == "MinQuantity") { 
+                                                <span>ซื้อครบ <strong>@promo.ConditionValue.ToString("N0")</strong> ชิ้น</span> 
+                                            }
+                                            else if(promo.ConditionType == "MinWeight") { 
+                                                <span>น้ำหนักครบ <strong>@promo.ConditionValue.ToString("N0")</strong> กก.</span> 
+                                            }
+                                            else { 
+                                                <span>@promo.ConditionType: @promo.ConditionValue</span> 
+                                            }
                                         </div>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-3">
+                                            @if (promo.RewardType == "DiscountBaht") { <span>-@promo.RewardValue.ToString("N0") ฿</span> }
+                                            else if (promo.RewardType == "DiscountPercent") { <span>-@promo.RewardValue.ToString("N0")%</span> }
+                                            else if (promo.RewardType == "FreeShipping") { <span>จัดส่งฟรี</span> }
+                                            else { <span>@promo.RewardItemName</span> }
+                                        </span>
                                     </td>
                                 </tr>
                             }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="card-footer bg-white border-0 py-4 px-4 text-center">
-                <a href="@Url.Action("Products", "Owner")" class="btn btn-outline-success rounded-pill px-5 fw-bold">
-                    <i class="bi bi-box-arrow-in-right me-2"></i> จัดการสต็อกสินค้าทั้งหมด
-                </a>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="3" class="text-center py-5">
+                                    <div class="py-4">
+                                        <i class="bi bi-tag text-muted display-4"></i>
+                                        <p class="text-muted mt-3 fw-bold">ไม่มีโปรโมชั่นที่เปิดใช้งานในขณะนี้</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
+        <div class="card-footer bg-white border-0 py-4 px-4 text-center">
+            <a href="@Url.Action("Promotions", "Manager")" class="btn btn-outline-success rounded-pill px-5 fw-bold">
+                <i class="bi bi-gear-fill me-2"></i> จัดการโปรโมชั่นทั้งหมด
+            </a>
+        </div>
     </div>
+</div>
 </div>

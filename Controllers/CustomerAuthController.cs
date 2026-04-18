@@ -20,7 +20,6 @@ namespace FertilizerShop.Controllers
         [HttpGet]
         public IActionResult Register()
         {
-            // ถ้าล็อกอินอยู่แล้วให้เด้งไปหน้าแรกเลย
             if (User.Identity.IsAuthenticated && User.IsInRole("Customer")) return RedirectToAction("Index", "Home");
             return View();
         }

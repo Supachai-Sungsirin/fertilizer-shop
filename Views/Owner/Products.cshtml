@@ -156,11 +156,13 @@
                                    class="btn btn-action-prod btn-outline-warning" title="แก้ไขข้อมูล">
                                     <i class="bi bi-pencil-fill"></i>
                                 </a>
-                                <a href="@Url.Action("DeleteProduct", "Owner", new { id = p.ProductId })" 
-                                   class="btn btn-action-prod btn-outline-danger" 
-                                   onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบสินค้า [@p.Name] ออกจากระบบ?');" title="ลบสินค้า">
+                                <button type="button" 
+                                   data-url="@Url.Action("DeleteProduct", "Owner", new { id = p.ProductId })"
+                                   data-name="@p.Name"
+                                   class="btn btn-action-prod btn-outline-danger delete-prod-btn" 
+                                   title="ลบสินค้า">
                                     <i class="bi bi-trash3-fill"></i>
-                                </a>
+                                </button>
                             </td>
                         </tr>
                     }
@@ -169,3 +171,33 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // หาปุ่มลบทั้งหมดที่มีคลาส delete-prod-btn
+        const deleteButtons = document.querySelectorAll('.delete-prod-btn');
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                // ดึง URL และชื่อสินค้าที่ซ่อนไว้ในปุ่ม
+                const url = this.getAttribute('data-url');
+                const prodName = this.getAttribute('data-name');
+
+                Swal.fire({
+                    title: 'ยืนยันการลบสินค้า?',
+                    html: `คุณแน่ใจหรือไม่ว่าต้องการลบสินค้า <strong>[${prodName}]</strong> ออกจากระบบ?<br><span class='text-danger small'>*หากสินค้านี้มีประวัติการขายแล้ว จะไม่สามารถลบได้ (แนะนำให้ปรับสต็อกเป็น 0 แทน)</span>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="bi bi-trash3-fill"></i> ยืนยันการลบ',
+                    cancelButtonText: 'ยกเลิก'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // ถ้ากดยืนยัน ให้พาวิ่งไปที่ Controller เพื่อลบข้อมูล
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
+    });
+</script>

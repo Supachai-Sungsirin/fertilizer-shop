@@ -298,8 +298,32 @@
         function changeQty(id, amount) {
             let itemIndex = cart.findIndex(item => item.id === id);
             if (itemIndex > -1) {
-                cart[itemIndex].qty += amount;
-                if (cart[itemIndex].qty <= 0) cart.splice(itemIndex, 1);
+                let item = cart[itemIndex];
+
+                // เช็คกรณี "เพิ่ม" จำนวนสินค้า (กดปุ่ม +)
+                if (amount > 0) {
+                    // ถ้าจำนวนปัจจุบัน มากกว่าหรือเท่ากับ สต็อกที่มีอยู่
+                    if (item.qty >= item.maxStock) {
+
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'สต็อกไม่เพียงพอ',
+                            text: `สินค้า "${item.name}" มีในสต็อกสูงสุดเพียง ${item.maxStock} ชิ้นเท่านั้น`,
+                            confirmButtonColor: '#f8b425',
+                            confirmButtonText: 'ตกลง'
+                        });
+                        return;
+                    }
+                }
+
+                // ถ้าสต็อกยังพอ หรือเป็นการ "ลด" จำนวน (กดปุ่ม -) ก็ให้คำนวณตามปกติ
+                item.qty += amount;
+                
+                // ถ้าลดจำนวนจนเหลือ 0 (หรือติดลบ) ให้ลบสินค้านั้นออกจากตะกร้า
+                if (item.qty <= 0) {
+                    cart.splice(itemIndex, 1);
+                }
+                
                 renderCart();
             }
         }
@@ -442,6 +466,53 @@
             document.getElementById("changeAmount").innerText = (received >= netTotal) ? (received - netTotal).toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00';
         }
 
+        function checkCustomer() {
+            let phone = document.getElementById("customerPhone").value.trim();
+            let infoEl = document.getElementById("customerInfo");
+
+            // ดักจับกรณีไม่ได้กรอก หรือกรอกไม่ครบ 10 หลัก
+            if (phone.length !== 10) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'ข้อมูลไม่ถูกต้อง',
+                    text: 'กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก',
+                    confirmButtonColor: '#1d976c',
+                    confirmButtonText: 'ตกลง'
+                });
+                infoEl.innerHTML = '<span class="text-danger">กรุณาระบุเบอร์โทรศัพท์ให้ถูกต้อง</span>';
+                return;
+            }
+
+            infoEl.innerHTML = '<span class="text-primary"><i class="spinner-border spinner-border-sm"></i> กำลังตรวจสอบข้อมูล...</span>';
+
+            // ส่งข้อมูลไปถาม CashierController
+            fetch(`/Cashier/CheckCustomer?phone=${phone}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // กรณีเจอข้อมูลลูกค้า
+                        infoEl.innerHTML = `<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>คุณ ${data.name} (แต้มสะสม: ${data.points} แต้ม)</span>`;
+                        showToast(`เชื่อมต่อบิลกับคุณ ${data.name} เรียบร้อย`, "success");
+                    } else {
+                        // กรณีไม่เจอข้อมูลลูกค้า
+                        infoEl.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill me-1"></i>ไม่พบข้อมูลสมาชิกระบบ</span>`;
+                        document.getElementById("customerPhone").value = ""; // ล้างช่องให้กรอกใหม่
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'ไม่พบสมาชิก',
+                            text: 'เบอร์โทรศัพท์นี้ยังไม่ได้สมัครสมาชิก กรุณาตรวจสอบอีกครั้ง',
+                            confirmButtonColor: '#dc3545',
+                            confirmButtonText: 'ปิด'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching customer:', error);
+                    infoEl.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> เกิดข้อผิดพลาดในการเชื่อมต่อ</span>`;
+                });
+        }
+
         function processCheckout() {
             let payMethod = document.getElementById("payment-method").value;
             let netTotal = parseFloat(document.getElementById("modalNetTotal").innerText.replace(/,/g, ''));
@@ -476,8 +547,23 @@
         }
 
         function clearCart() {
-            if(cart.length > 0 && confirm("ยืนยันการล้างตะกร้า?")) {
-                cart = []; renderCart(); showToast("ล้างตะกร้าแล้ว", "warning");
+            if (cart.length > 0) {
+                Swal.fire({
+                    title: 'ยืนยันการล้างตะกร้า?',
+                    text: "สินค้าทั้งหมดในตะกร้าจะถูกลบทิ้ง",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545', 
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="bi bi-trash"></i> ยืนยันล้างตะกร้า',
+                    cancelButtonText: 'ยกเลิก'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        cart = []; 
+                        renderCart(); 
+                        showToast("ล้างตะกร้าเรียบร้อย", "warning");
+                    }
+                });
             }
         }
     </script>
