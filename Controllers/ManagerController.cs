@@ -19,7 +19,7 @@ namespace FertilizerShop.Controllers
             _db = db;
         }
 
-public IActionResult Index()
+        public IActionResult Index()
         {
             var today = DateTime.Today;
 
@@ -141,7 +141,7 @@ public IActionResult Index()
             // ดึงรายชื่อ Supplier มาทำ Dropdown
             ViewBag.Suppliers = new SelectList(_db.Suppliers, "SupplierId", "Name");
 
-            // ดึงรายชื่อสินค้าทั้งหมดส่งไปให้ JavaScript วาด Dropdown
+            // ดึงรายชื่อสินค้าทั้งหมด Dropdown
             ViewBag.ProductsList = _db.Products.Select(p => new
             {
                 id = p.ProductId,

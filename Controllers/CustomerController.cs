@@ -7,7 +7,6 @@ using FertilizerShop.ViewModels;
 
 namespace FertilizerShop.Controllers
 {
-    // 🌟 ล็อคไว้ให้เฉพาะคนที่มี Role เป็น "Customer" เท่านั้น
     [Authorize(Roles = "Customer")]
     public class CustomerController : Controller
     {
@@ -34,7 +33,7 @@ namespace FertilizerShop.Controllers
             // ดึงประวัติการซื้อ (พร้อมรายละเอียดสินค้าในบิล)
             var orders = _db.Orders
                             .Include(o => o.Orderdetails)
-                                .ThenInclude(od => od.Product) // ดึงชื่อสินค้ามาด้วย
+                                .ThenInclude(od => od.Product)
                             .Where(o => o.CustomerId == customerId)
                             .OrderByDescending(o => o.OrderDate)
                             .ToList();

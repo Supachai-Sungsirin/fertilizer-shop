@@ -29,17 +29,17 @@ namespace FertilizerShop.Controllers
             var today = DateTime.Today;
             var startOfMonth = new DateTime(today.Year, today.Month, 1);
 
-            // 1. คำนวณยอดขายวันนี้ และ เดือนนี้
+            // คำนวณยอดขายวันนี้ และ เดือนนี้
             var todayOrders = _db.Orders.Where(o => o.OrderDate.Value.Date == today).ToList();
             var monthOrders = _db.Orders.Where(o => o.OrderDate.Value.Date >= startOfMonth).ToList();
 
-            // 2. หาสินค้าใกล้หมดสต็อก
+            // หาสินค้าใกล้หมดสต็อก
             var lowStock = _db.Products.Count(p => p.StockQuantity <= 10);
 
-            // 3. หาสินค้าขายดี 5 อันดับแรก (Top 5 Best Sellers)
+            // หาสินค้าขายดี 5 อันดับแรก
             var topProducts = _db.Orderdetails
                                  .Include(od => od.Product)
-                                 .AsEnumerable() // ดึงมาประมวลผลใน Memory
+                                 .AsEnumerable()
                                  .GroupBy(od => new { od.ProductId, od.Product?.Name })
                                  .Select(g => new TopSellingProduct
                                  {
@@ -51,7 +51,7 @@ namespace FertilizerShop.Controllers
                                  .Take(5)
                                  .ToList();
 
-            // 4. เตรียมข้อมูลทำ "กราฟยอดขายย้อนหลัง 7 วัน"
+            // เตรียมข้อมูลทำ "กราฟยอดขายย้อนหลัง 7 วัน"
             var last7Days = today.AddDays(-6);
             var recentOrders = _db.Orders.Where(o => o.OrderDate.Value.Date >= last7Days).ToList();
 
@@ -62,8 +62,7 @@ namespace FertilizerShop.Controllers
             for (int i = 6; i >= 0; i--)
             {
                 var targetDate = today.AddDays(-i);
-                chartLabels.Add(targetDate.ToString("dd/MM")); // ชื่อแกน X (เช่น 25/03)
-                                                               // ยอดรวมของวันนั้น แกน Y
+                chartLabels.Add(targetDate.ToString("dd/MM")); 
                 chartValues.Add(recentOrders.Where(o => o.OrderDate.Value.Date == targetDate).Sum(o => o.TotalAmount));
             }
 
@@ -74,7 +73,7 @@ namespace FertilizerShop.Controllers
             // ดึงสินค้าที่สต็อกเหลือน้อยที่สุด 5 อันดับแรก (น้อยกว่าหรือเท่ากับ 10)
             var topLowStock = _db.Products
                                  .Where(p => p.StockQuantity <= 10)
-                                 .OrderBy(p => p.StockQuantity) // เรียงจากน้อยไปมาก
+                                 .OrderBy(p => p.StockQuantity) 
                                  .Take(5)
                                  .ToList();
 
@@ -110,7 +109,6 @@ namespace FertilizerShop.Controllers
         // จัดการพนักงาน
         public IActionResult Employees()
         {
-            // ดึงข้อมูลพนักงานทั้งหมด พร้อมกับชื่อตำแหน่ง (Role)
             var users = _db.Users.Include(u => u.Role).ToList();
             return View(users);
         }
@@ -126,7 +124,6 @@ namespace FertilizerShop.Controllers
         {
             if (ModelState.IsValid)
             {
-                // ทำการ Mapping ข้อมูลจาก ViewModel โยนใส่ Model หลัก (User)
                 var newUser = new User
                 {
                     EmployeeId = data.EmployeeId,
@@ -183,7 +180,6 @@ namespace FertilizerShop.Controllers
                 var user = _db.Users.Find(data.UserId);
                 if (user == null) return NotFound();
 
-                // (โค้ดอัปเดตข้อมูล user... เหมือนเดิม)
                 user.EmployeeId = data.EmployeeId;
                 user.FirstName = data.FirstName;
                 user.LastName = data.LastName;
@@ -396,7 +392,7 @@ namespace FertilizerShop.Controllers
 
                 if (data.ImageUpload != null)
                 {
-                    string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "products");
+                    string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "products"); 
                     Directory.CreateDirectory(uploadsFolder);
                     string uniqueFileName = Guid.NewGuid().ToString() + "_" + data.ImageUpload.FileName;
                     string filePath = Path.Combine(uploadsFolder, uniqueFileName);
