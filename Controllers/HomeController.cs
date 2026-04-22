@@ -8,7 +8,6 @@ public class HomeController : Controller
 {
     private readonly FertilizershopdbContext _db;
 
-    // ฉีด Database Context เข้ามาเพื่อใช้ดึงข้อมูล
     public HomeController(FertilizershopdbContext db)
     {
         _db = db;
@@ -16,8 +15,6 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        // ดึงรายการสินค้าทั้งหมด (อาจจะซ่อนตัวที่สต็อกหมด หรือตัวที่ยกเลิกขายแล้วได้ในอนาคต)
-        // สำหรับตอนนี้ดึงมาโชว์ทั้งหมดก่อน เรียงตามชื่อ
         var products = _db.Products.OrderBy(p => p.Name).ToList();
         
         return View(products);
@@ -36,7 +33,7 @@ public class HomeController : Controller
         
         if (product == null)
         {
-            return NotFound(); // ถ้าไม่เจอให้แสดงหน้า 404
+            return NotFound();
         }
 
         return View(product);

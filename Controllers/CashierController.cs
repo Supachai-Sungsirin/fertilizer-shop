@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using FertilizerShop.Models;
 using FertilizerShop.ViewModels;
 using System.Security.Claims;
-using System.Text.Json; // เพิ่มบรรทัดนี้สำหรับส่ง Json
+using System.Text.Json;
 
 namespace FertilizerShop.Controllers
 {
